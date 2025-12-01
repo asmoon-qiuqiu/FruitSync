@@ -14,6 +14,7 @@ class UserRegister(BaseModel):
     username: str
     email: EmailStr
     password: str
+    model_config = {"extra": "forbid"}
 
     @field_validator("username")
     def username_validator(cls, v):

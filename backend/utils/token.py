@@ -1,19 +1,35 @@
 import jwt
-from datetime import datetime, timedelta
-from config import RESET_TOKEN_EXPIRE_HOURS, SECRET_KEY, ALGORITHM
+from datetime import datetime, timedelta, timezone
+from config import (
+    RESET_TOKEN_EXPIRE_HOURS,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    SECRET_KEY,
+    ALGORITHM,
+)
 
 
-# 生成JWT Token
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    """生成JWT Token"""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(datetime.UTC) + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(datetime.UTC) + timedelta(hours=RESET_TOKEN_EXPIRE_HOURS)
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
+def create_reset_token(data: dict):
+    """生成密码重置 Token（1小时过期）"""
+    expire = datetime.now(timezone.utc) + timedelta(hours=RESET_TOKEN_EXPIRE_HOURS)
+    to_encode = data.copy()
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
 def get_reset_expiration() -> datetime:
-    return datetime.now() + timedelta(hours=RESET_TOKEN_EXPIRE_HOURS)
+    """获取重置令牌过期时间"""
+    return datetime.now(timezone.utc) + timedelta(hours=RESET_TOKEN_EXPIRE_HOURS)

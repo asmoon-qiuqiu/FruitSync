@@ -1,6 +1,4 @@
 <script setup>
-  import { reactive } from 'vue'
-
   const props = defineProps({
     showPassword: {
       type: Boolean,
@@ -10,19 +8,17 @@
       type: Boolean,
       required: true,
     },
+    form: {
+      // 接收父组件的form
+      type: Object,
+      required: true,
+    },
   })
 
   const emit = defineEmits(['toggle-password', 'change-form', 'submit'])
-
-  // 登录表单数据
-  const formData = reactive({
-    username: '',
-    password: '',
-  })
-
-  // 提交时传递数据
+  // 处理表单提交，传递原生事件和表单数据
   const handleSubmit = (e) => {
-    emit('submit', e, formData)
+    emit('submit', e)
   }
 </script>
 
@@ -39,9 +35,9 @@
       <input
         type="text"
         name="username"
-        placeholder="用户名/邮箱"
-        required
-        v-model="formData.username"
+        placeholder="用户名"
+        v-model="form.username"
+        novalidate
       />
     </div>
     <div class="login-password">
@@ -50,8 +46,8 @@
         :type="showPassword ? 'text' : 'password'"
         name="pwd"
         placeholder="密码"
-        required
-        v-model="formData.password"
+        v-model="form.password"
+        novalidate
       />
       <i
         class="bi bi-eye"

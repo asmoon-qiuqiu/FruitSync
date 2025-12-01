@@ -4,8 +4,9 @@
   import { ElMessage } from 'element-plus'
   import LoginForm from './LoginForm.vue' // 导入登录子组件
   import RegisterForm from './RegisterForm.vue' // 导入注册子组件
-  import { isLogin, changeForm, showPassword, togglePassword } from '@/utils/useAuthForm'
+  import { isLogin, changeForm, showPassword, togglePassword } from '@/utils/useFormEye'
   import { userRegisterApi } from '@/api/register'
+  import { userLoginApi } from '@/api/login'
   import { useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'
 
@@ -62,12 +63,12 @@
     return { isValid: true }
   }
 
-  // 修改后的 handleRegister 函数
+  // 注册请求函数
   const handleRegister = async (e) => {
     e.preventDefault()
     isLoading.value = true
 
-    // 执行验证
+    // 执行表单验证
     const usernameValidation = validateUsername(form.username)
     if (!usernameValidation.isValid) {
       ElMessage.error(usernameValidation.message)
@@ -94,34 +95,65 @@
       isLoading.value = true
       // API调用
       await userRegisterApi(form)
-      ElMessage.success('注册成功')
+      // 注册成功后，只保存用户名
       userStore.login(form.username)
+      // 提示成功
+      ElMessage.success('注册成功')
       // 成功后重置表单
       registerFormRef.value.resetForm()
       // 路由跳转
       router.push('/')
     } catch (error) {
       ElMessage.error('注册失败:' + error.message)
-      // 可以根据 error 内容显示更具体的错误信息
     } finally {
       isLoading.value = false
     }
   }
 
-  // 模拟登录请求（实际项目替换为接口请求）
+  // 登录请求函数
   const handleLogin = async (e) => {
     e.preventDefault() // 阻止表单默认提交
     isLoading.value = true // 显示loading
+    // 执行表单验证
+    const usernameValidation = validateUsername(form.username)
+    if (!usernameValidation.isValid) {
+      ElMessage.error(usernameValidation.message)
+      isLoading.value = false
+      return
+    }
+
+    const passwordValidation = validatePassword(form.password)
+    if (!passwordValidation.isValid) {
+      ElMessage.error(passwordValidation.message)
+      isLoading.value = false
+      return
+    }
+    // 调用登录API
     try {
-      // 模拟接口请求（延迟2秒）
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      // 请求成功后逻辑...
-      console.log(isLogin.value ? '登录成功' : '注册成功')
+      isLoading.value = true
+      const response = await userLoginApi({
+        username: form.username,
+        password: form.password,
+      })
+      console.log(response)
+      // 保存token到localStorage
+      localStorage.setItem('token', response.data.token)
+
+      // 登录成功后保存用户信息到store
+      userStore.login({
+        id: response.data.user.id,
+        username: response.data.user.username,
+      })
+      // 提示成功
+      ElMessage.success('登录成功')
+      // 成功后重置表单
+      form.username = ''
+      form.password = ''
+      // 跳转到首页
+      router.push('/')
     } catch (error) {
-      console.error(isLogin.value ? '登录失败:' : '注册失败:', error)
-      // 处理错误
+      ElMessage.error('登录失败:' + (error.message || '请检查用户名和密码'))
     } finally {
-      // 无论成功与否都关闭 loading
       isLoading.value = false
     }
   }
@@ -163,11 +195,13 @@
     <!-- 动态渲染登录/注册子组件，传递核心方法和状态 -->
     <LoginForm
       v-if="isLogin"
+      ref="registerFormRef"
       :show-password="showPassword"
       @toggle-password="togglePassword"
       @change-form="changeForm"
       @submit="handleLogin"
       :is-loading="isLoading"
+      :form="form"
     />
     <RegisterForm
       v-else

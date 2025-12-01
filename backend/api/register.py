@@ -15,6 +15,9 @@ router = APIRouter(prefix="/api", tags=["register"])
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="用户注册接口",
+    description="""
+    #### 接口功能-提供用户注册服务，完成用户账号的创建，注册时会对用户名和邮箱进行唯一性校验，同时将用户密码加密后存储，保障账户安全。
+    """,
 )
 async def register(
     user_data: UserRegister, session: Annotated[Session, Depends(get_session)]

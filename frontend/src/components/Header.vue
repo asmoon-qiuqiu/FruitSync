@@ -141,7 +141,7 @@
               @click.stop="handleLogout"
               class="logout-btn"
             >
-              退出
+              登出
             </button>
           </div>
           <router-link
@@ -173,7 +173,7 @@
         @click="handleLogout"
         class="logout-btn"
       >
-        退出
+        登出
       </button>
     </div>
     <router-link

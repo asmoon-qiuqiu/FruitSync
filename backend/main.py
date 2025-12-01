@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager  # 导入生命周期装饰器
 from sqlmodel import SQLModel
 from api.auth import router as auth_router
 from api.register import router as register
+from api.login import router as login
 from database import async_engine
 
 
@@ -46,17 +47,18 @@ app.add_middleware(
 # 挂载路由
 app.include_router(auth_router)
 app.include_router(register)
+app.include_router(login)
 
 
 # 根路径
 @app.get("/")
 def root():
     return {
-        "message": "水果商城用户认证API",
+        "message": "🤓欢迎调用asmoon的API",
         "version": "1.0.0",
         "endpoints": {
             "register": "/api/register",
-            "login": "/api/auth/login",
+            "login": "/api/login",
             "forgot_password": "/api/auth/forgot-password",
             "reset_password": "/api/auth/reset-password",
         },

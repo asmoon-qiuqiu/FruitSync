@@ -4,6 +4,7 @@ import { useUserStore } from './stores/user' // 导入用户仓库
 import App from './App.vue'
 import router from './router'
 import TlbsMap from 'tlbs-map-vue'
+import { ElMessage } from 'element-plus'
 
 // 导入bootstrap样式
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -13,6 +14,7 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 // 导入 ElMessage 的样式
 import 'element-plus/es/components/message/style/index'
+
 const app = createApp(App)
 
 app.use(createPinia())
@@ -22,4 +24,13 @@ app.use(router)
 // 初始化用户状态（恢复本地存储的登录信息）
 const userStore = useUserStore()
 userStore.initUser()
+// 每5分钟检查一次token是否过期
+setInterval(() => {
+    if (userStore.isLoggedIn && userStore.checkTokenExpired()) {
+        ElMessage.warning('Token已过期，请重新登录')
+        userStore.logout()
+        router.push('/login')
+    }
+}, 5 * 60 * 1000) // 5分钟
+
 app.mount('#app')

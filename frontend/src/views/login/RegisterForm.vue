@@ -19,9 +19,9 @@
 
   // 处理表单提交，传递原生事件和表单数据
   const handleSubmit = (e) => {
-    emit('submit', e) // 第二个参数传递表单数据
+    emit('submit', e)
   }
-  // 新增：暴露重置表单的方法，供父组件调用
+  // 暴露重置表单的方法，供父组件调用
   const resetForm = () => {
     props.form.username = ''
     props.form.email = ''

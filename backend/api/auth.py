@@ -6,56 +6,15 @@ from datetime import datetime
 from model.user import User
 from model.password_reset import PasswordReset
 from schemas.auth import (
-    UserLogin,
     PasswordResetRequest,
     PasswordResetConfirm,
-    LoginResponse,
 )
-from schemas.user import UserResponse
+
 from database import get_session
-from utils.hashPassword import hash_password, verify_password
+from utils.hashPassword import hash_password
 from utils.token import create_access_token, get_reset_expiration
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-
-
-@router.post("/login", response_model=LoginResponse)
-def login(login_data: UserLogin, session: Session = Depends(get_session)):
-    # ""用户登录""
-    # 查找用户(支持用户名或邮箱登录)
-    statement = select(User).where(
-        (User.username == login_data.username) | (User.email == login_data.username)
-    )
-    user = session.exec(statement).first()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码错误"
-        )
-
-    if not verify_password(login_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码错误"
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="账户已被禁用"
-        )
-    # 实际应用中应该生成JWT token
-    token = f"mock_token_{user.id}_{secrets.token_urlsafe(16)}"
-
-    return LoginResponse(
-        message="登录成功",
-        user=UserResponse(
-            id=user.id,
-            username=user.username,
-            email=user.email,
-            is_active=user.is_active,
-            created_at=user.created_at,
-        ),
-        token=token,
-    )
 
 
 @router.post("/forgot-password")

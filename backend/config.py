@@ -11,4 +11,5 @@ SECRET_KEY = secrets.token_hex(32)
 # JWT签名算法
 ALGORITHM = "HS256"
 # 过期时间
-RESET_TOKEN_EXPIRE_HOURS = 12
+ACCESS_TOKEN_EXPIRE_MINUTES = 12  # 登录token过期时间-12小时
+RESET_TOKEN_EXPIRE_HOURS = 1  # 重置密码token过期时间
