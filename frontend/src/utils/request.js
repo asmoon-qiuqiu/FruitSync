@@ -64,7 +64,6 @@ service.interceptors.response.use(
                         localStorage.removeItem('token');
                         localStorage.removeItem('user');
 
-                        // ⚠️ 使用 window.location 跳转，避免循环依赖
                         // 检查当前路径，避免重复跳转
                         if (!window.location.pathname.includes('/login')) {
                             // 延迟跳转，确保提示信息能显示

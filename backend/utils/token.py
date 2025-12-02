@@ -2,7 +2,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from config import (
     RESET_TOKEN_EXPIRE_HOURS,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ACCESS_TOKEN_EXPIRE_HOURS,
     SECRET_KEY,
     ALGORITHM,
 )
@@ -15,7 +15,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         expire = datetime.now(timezone.utc) + expires_delta
     else:
         expire = datetime.now(timezone.utc) + timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+            minutes=ACCESS_TOKEN_EXPIRE_HOURS
         )
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
