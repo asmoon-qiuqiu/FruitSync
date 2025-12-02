@@ -1,6 +1,7 @@
 // src/utils/request.js
+import router from "@/router";
 import axios from "axios"
-import { ElMessage } from 'element-plus'
+
 
 // 1. 创建Axios实例，配置基础参数
 const service = axios.create({
@@ -68,7 +69,7 @@ service.interceptors.response.use(
                         if (!window.location.pathname.includes('/login')) {
                             // 延迟跳转，确保提示信息能显示
                             setTimeout(() => {
-                                window.location.href = '/login';
+                                router.push('/login');
                             }, 1500);
                         }
                     }
