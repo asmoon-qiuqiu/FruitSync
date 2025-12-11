@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
-from config import ACCESS_TOKEN_EXPIRE_MINUTES
-from schemas.userLogin import UserLogin
-from schemas.user import LoginResponse, UserResponse
+from config import ACCESS_TOKEN_EXPIRE_HOURS
+from schemas.userLogin import UserLogin, LoginResponse
+from schemas.userResponse import UserResponse
 from utils.hashPassword import verify_password
 from utils.token import create_access_token
 from model.user import User
@@ -45,7 +45,7 @@ async def login(login_data: UserLogin, session: Session = Depends(get_session)):
             status_code=status.HTTP_403_FORBIDDEN, detail="账户已被禁用"
         )
     # 生成JWT token
-    access_token_expires = timedelta(hours=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
     token = create_access_token(
         data={"sub": user.id, "username": user.username},
         expires_delta=access_token_expires,

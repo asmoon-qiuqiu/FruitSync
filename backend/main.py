@@ -7,6 +7,7 @@ from api.auth import router as auth_router
 from api.register import router as register
 from api.login import router as login
 from database import async_engine
+from fastapi.staticfiles import StaticFiles
 
 
 # 创建表
@@ -34,6 +35,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="水果商城用户认证API", lifespan=lifespan)
+
+# 挂载静态文件目录
+app.mount("/static", StaticFiles(directory="static/images"), name="static")
 
 # CORS 配置
 app.add_middleware(

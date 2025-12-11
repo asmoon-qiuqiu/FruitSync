@@ -1,14 +1,4 @@
-"""
-用户认证模块数据校验模型（Pydantic v2）
-功能：定义用户注册、登录、密码重置的请求参数校验规则，以及登录成功的响应数据结构
-作用：1. 自动校验前端提交的请求数据合法性，返回标准化错误提示
-     2. 统一后端响应数据格式，实现前后端数据契约一致
-     3. 为FastAPI自动生成接口文档提供数据模型支撑
-模块依赖：Pydantic（数据校验）、re（正则匹配）、自定义用户响应模型UserResponse
-"""
-
 from pydantic import BaseModel, EmailStr, field_validator
-from schemas.user import UserResponse  # 导入用户信息响应模型（隐藏敏感字段）
 
 
 class PasswordResetRequest(BaseModel):

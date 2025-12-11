@@ -8,6 +8,7 @@
 
 from sqlmodel import SQLModel, Field
 from datetime import datetime
+from typing import Annotated
 
 
 class PasswordReset(SQLModel, table=True):
@@ -25,14 +26,14 @@ class PasswordReset(SQLModel, table=True):
     __tablename__ = "password_resets"
 
     # 主键字段：自增ID，默认值为None表示数据库自动生成
-    id: int | None = Field(default=None, primary_key=True)
+    id: Annotated[int | None, Field(primary_key=True)] = None
     # 外键字段：关联用户表的id，索引加速查询，明确该重置记录归属的用户
-    user_id: int = Field(foreign_key="users.id", index=True)
+    user_id: Annotated[int, Field(foreign_key="users.id", index=True)]
     # 重置令牌：唯一索引，最大长度100，保证令牌的唯一性且限制存储长度
-    token: str = Field(unique=True, index=True, max_length=100)
+    token: Annotated[str, Field(unique=True, index=True, max_length=100)]
     # 令牌过期时间：记录令牌的失效时间，超过该时间则无法重置密码
-    expires_at: datetime
+    expires_at: Annotated[datetime, ...]  # ... 表示无额外约束
     # 令牌使用状态：默认未使用（False），使用后标记为已使用（True），防止重复使用
-    is_used: bool = Field(default=False)
+    is_used: Annotated[bool, ...] = False
     # 记录创建时间：默认使用当前时间，无需手动传入，记录令牌的生成时间
-    created_at: datetime = Field(default_factory=datetime.now)
+    created_at: Annotated[datetime, Field(default_factory=datetime.now)]
