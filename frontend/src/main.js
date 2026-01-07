@@ -20,6 +20,8 @@ app.use(createPinia())
 app.use(TlbsMap)
 app.use(router)
 
-import "@/utils/checkToken"
-
 app.mount('#app')
+
+// 初始化Token检查逻辑
+import { initTokenCheck } from "@/utils/checkToken"
+initTokenCheck()

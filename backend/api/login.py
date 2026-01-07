@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Annotated
 from sqlmodel import Session, select
 from config import ACCESS_TOKEN_EXPIRE_HOURS
 from schemas.userLogin import UserLogin, LoginResponse
@@ -22,7 +23,9 @@ router = APIRouter(prefix="/api", tags=["login"])
     #### 接口功能-提供用户登录验证服务，支持通过用户名或邮箱作为账号进行登录，验证通过后返回用户基本信息和临时身份令牌。
     """,
 )
-async def login(login_data: UserLogin, session: Session = Depends(get_session)):
+async def login(
+    login_data: UserLogin, session: Annotated[Session, Depends(get_session)]
+):
     # ""用户登录""
     # 查找用户(支持用户名或邮箱登录)
     statement = select(User).where(

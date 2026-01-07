@@ -11,5 +11,5 @@ export const userRegisterApi = (data) => {
         url: "/api/register",
         method: "POST",
         data: data, // 传递注册表单数据
-    });
+    })
 };

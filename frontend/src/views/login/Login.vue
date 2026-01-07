@@ -4,7 +4,7 @@
   import { ElMessage } from 'element-plus'
   import LoginForm from './LoginForm.vue' // 导入登录子组件
   import RegisterForm from './RegisterForm.vue' // 导入注册子组件
-  import { isLogin, changeForm, showPassword, togglePassword } from '@/utils/useFormEye'
+  import { useAuthForm } from '@/utils/useFormEye'
   import { userRegisterApi } from '@/api/register'
   import { userLoginApi } from '@/api/login'
   import { useRouter } from 'vue-router'
@@ -13,7 +13,8 @@
   const router = useRouter()
   const userStore = useUserStore() // 创建仓库实例
   const isLoading = ref(false) // 控制loading显示/隐藏
-
+  // 使用表单辅助方法
+  const { isLogin, changeForm, showPassword, togglePassword } = useAuthForm()
   // 定义响应式的表单数据对象，存储登录/注册的输入内容
   const form = reactive({
     username: '', // 用户名
@@ -21,7 +22,7 @@
     password: '', // 密码
   })
   // 获取子组件的引用
-  const registerFormRef = ref(null)
+  const FormRef = ref(null)
 
   // 定义验证规则函数
   const validateUsername = (username) => {
@@ -100,7 +101,7 @@
       // 提示成功
       ElMessage.success('注册成功')
       // 成功后重置表单
-      registerFormRef.value.resetForm()
+      FormRef.value.resetForm()
       // 路由跳转
       router.push('/')
     } catch (error) {
@@ -195,23 +196,23 @@
     <!-- 动态渲染登录/注册子组件，传递核心方法和状态 -->
     <LoginForm
       v-if="isLogin"
-      ref="registerFormRef"
+      ref="FormRef"
       :show-password="showPassword"
+      :is-loading="isLoading"
+      :form="form"
       @toggle-password="togglePassword"
       @change-form="changeForm"
       @submit="handleLogin"
-      :is-loading="isLoading"
-      :form="form"
     />
     <RegisterForm
       v-else
-      ref="registerFormRef"
+      ref="FormRef"
       :show-password="showPassword"
+      :is-loading="isLoading"
+      :form="form"
       @toggle-password="togglePassword"
       @change-form="changeForm"
       @submit="handleRegister"
-      :is-loading="isLoading"
-      :form="form"
     />
   </div>
 </template>

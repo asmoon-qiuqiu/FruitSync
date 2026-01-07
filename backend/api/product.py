@@ -3,6 +3,7 @@
 功能：提供商品的增删改查接口，支持分页查询
 """
 
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select, func
 from datetime import datetime
@@ -22,10 +23,10 @@ router = APIRouter(prefix="/api", tags=["products"])
     description="获取所有商品列表，支持分页查询",
 )
 async def get_products(
-    page: int = Query(1, ge=1, description="页码，从1开始"),
-    page_size: int = Query(10, ge=1, le=100, description="每页数量，最大100"),
-    category: str = Query(None, description="商品分类筛选"),
-    session: Session = Depends(get_session),
+    session: Annotated[Session, Depends(get_session)],
+    page: Annotated[int, Query(1, ge=1, description="页码，从1开始")],
+    page_size: Annotated[int, Query(6, ge=1, le=100, description="每页数量，最大100")],
+    category: Annotated[str | None, Query(None, description="商品分类筛选")],
 ):
     """获取商品列表（带分页）"""
     # 构建查询语句
