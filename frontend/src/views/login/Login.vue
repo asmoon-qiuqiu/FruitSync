@@ -54,7 +54,6 @@
 
   const validatePassword = (password) => {
     if (!password) {
-      // 密码通常不应 trim
       return { isValid: false, message: '请输入密码！' }
     }
     if (password.length < 6) {

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from schemas.userResponse import UserResponse
+from schemas.user.userResponse import UserResponse
 
 
 class UserLogin(BaseModel):

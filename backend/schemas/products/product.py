@@ -32,9 +32,9 @@ class ProductResponse(BaseModel):
 
     id: int
     name: str
-    description: str
+    description: str | None
     price: float
-    image_url: str
+    image_url: str | None
     category: str
     in_stock: bool
     created_at: datetime

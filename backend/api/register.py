@@ -1,7 +1,7 @@
-from schemas.userRegister import UserRegister
+from schemas.user.userRegister import UserRegister
+from schemas.user.userResponse import UserResponse
 from model.user import User
 from fastapi import APIRouter, Depends, HTTPException, status
-from schemas.userResponse import UserResponse
 from sqlmodel import select, Session
 from database import get_session
 from utils.hashPassword import hash_password

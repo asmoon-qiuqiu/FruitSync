@@ -1,331 +1,69 @@
 <script setup>
-  import { ref, computed } from 'vue'
-  // 2.分页相关逻辑
+  import { ref, computed, watch, onMounted } from 'vue'
+  import { getProductListApi } from '@/api/product'
+  import { ElMessage } from 'element-plus'
+  import { BASE_API_URL } from '@/config' // 导入后端基础URL
+  // 1.分页按钮相关逻辑
   const currentPage = ref(1) // 当前页码
   const pageSize = ref(6) // 每页显示数量
   const jumpPageInput = ref('') //用于存储跳转输入框的值
+  // 2.存储接口返回的商品数据和分页信息
+  const productList = ref([]) // 商品列表数据
+  const total = ref(0) // 总记录数
+  const totalPages = ref(1) // 总页数
+  const currentCategory = ref('') // 当前选中的分类（默认空，查询所有）
+  const loading = ref(false) // 加载状态
 
-  // 模拟水果数据（后续从接口获取）
-  const allFruits = ref([
-    {
-      id: 1,
-      name: '红富士苹果',
-      desc: '脆甜多汁，富含维生素C，适合直接食用或制作沙拉。',
-      price: '8.9',
-      image: 'https://picsum.photos/id/1080/300/200',
-    },
-    {
-      id: 2,
-      name: '青苹果',
-      desc: '酸甜可口，富含膳食纤维，有助于消化。',
-      price: '7.5',
-      image: 'https://picsum.photos/id/1065/300/200',
-    },
-    {
-      id: 3,
-      name: '香蕉',
-      desc: '香甜软糯，富含钾元素，补充能量。',
-      price: '5.9',
-      image: 'https://picsum.photos/id/1060/300/200',
-    },
-    {
-      id: 4,
-      name: '橙子',
-      desc: '酸甜多汁，维生素C含量丰富。',
-      price: '6.8',
-      image: 'https://picsum.photos/id/1061/300/200',
-    },
-    {
-      id: 5,
-      name: '西瓜',
-      desc: '清甜解暑，夏日必备水果。',
-      price: '3.5',
-      image: 'https://picsum.photos/id/1062/300/200',
-    },
-    {
-      id: 6,
-      name: '葡萄',
-      desc: '颗粒饱满，酸甜适中，营养丰富。',
-      price: '12.9',
-      image: 'https://picsum.photos/id/1063/300/200',
-    },
-    {
-      id: 7,
-      name: '草莓',
-      desc: '鲜红欲滴，香甜可口，维C之王。',
-      price: '15.9',
-      image: 'https://picsum.photos/id/1064/300/200',
-    },
-    {
-      id: 8,
-      name: '芒果',
-      desc: '香甜多汁，果肉细腻，热带风味。',
-      price: '9.9',
-      image: 'https://picsum.photos/id/1066/300/200',
-    },
-    {
-      id: 9,
-      name: '猕猴桃',
-      desc: '酸甜爽口，维生素含量极高。',
-      price: '8.5',
-      image: 'https://picsum.photos/id/1067/300/200',
-    },
-    {
-      id: 10,
-      name: '火龙果',
-      desc: '清甜爽口，富含花青素，美容养颜。',
-      price: '7.9',
-      image: 'https://picsum.photos/id/1068/300/200',
-    },
-    {
-      id: 11,
-      name: '荔枝',
-      desc: '甜美多汁，果肉晶莹剔透。',
-      price: '18.9',
-      image: 'https://picsum.photos/id/1069/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-    {
-      id: 12,
-      name: '樱桃',
-      desc: '小巧玲珑，酸甜可口，营养价值高。',
-      price: '25.9',
-      image: 'https://picsum.photos/id/1070/300/200',
-    },
-  ])
-  // 计算总页数
-  const totalPages = computed(() => {
-    return Math.ceil(allFruits.value.length / pageSize.value)
+  // 获取商品列表数据函数
+  const getProductList = async () => {
+    loading.value = true
+    try {
+      // 调用接口，传递分页和分类参数
+      const response = await getProductListApi({
+        page: currentPage.value,
+        page_size: pageSize.value, // 每页数量
+        category: currentCategory.value || undefined, // 分类为空时不传该参数
+      })
+      console.log('完整响应对象:', response)
+      console.log('后端实际返回的数据:', response.data)
+      // 解构接口返回的分页数据
+      productList.value = response.data.products || []
+      total.value = response.data.total || 0
+      totalPages.value = response.data.total_pages || 1
+    } catch (error) {
+      console.error('获取商品列表失败：', error)
+      productList.value = []
+      total.value = 0
+      totalPages.value = 1
+      ElMessage.error('商品加载失败，请稍后重试')
+    } finally {
+      loading.value = false
+    }
+  }
+  // 直接返回接口获取的当前页数据（后端已做分页）
+  const FruitsList = computed(() => {
+    return productList.value.map((fruit) => ({
+      id: fruit.id,
+      name: fruit.name,
+      desc: fruit.description, // 后端字段为description,映射前端的desc
+      price: fruit.price,
+      // 拼接完整的图片url，BASE_API_URL + 后端返回的相对路径
+      image: fruit.image_url ? `${BASE_API_URL}${fruit.image_url}` : '', // 后端字段为image_url,映射前端的image
+    }))
   })
-
-  // 计算当前页显示的水果数据
-  const paginatedFruits = computed(() => {
-    const start = (currentPage.value - 1) * pageSize.value
-    const end = start + pageSize.value
-    return allFruits.value.slice(start, end)
-  })
+  // 分类切换函数（绑定到分类按钮）
+  const changeCategory = (category) => {
+    currentCategory.value = category
+    currentPage.value = 1 // 切换分类后重置到第一页
+    getProductList()
+  }
 
   // 切换页码
   const changePage = (page) => {
     if (page >= 1 && page <= totalPages.value) {
       currentPage.value = page // 转递新的页码
       jumpPageInput.value = '' // 跳转后清空输入框
+      getProductList() // 切换页码后重新请求接口获取数据
       // 切换页码后滚动到水果列表顶部
       const fruitList = document.querySelector('.fruit-list')
       if (fruitList) {
@@ -333,13 +71,7 @@
       }
     }
   }
-  // 跳转处理函数
-  const handleJumpPageInput = () => {
-    const page = parseInt(jumpPageInput.value)
-    if (!isNaN(page)) {
-      changePage(page)
-    }
-  }
+
   // 生成页码数组（最多显示5个页码）
   const pageNumbers = computed(() => {
     const pages = []
@@ -366,26 +98,96 @@
     }
     return pages
   })
+
+  // 图片加载失败的处理函数
+  const handleImageError = (e) => {
+    // 图片加载失败时显示兜底图
+    e.target.src = `${BASE_API_URL}/images/default-fruit.jpg`
+    // 也可以隐藏图片：e.target.style.display = 'none'
+  }
+  // 页码跳转处理函数
+  const handleJumpPageInput = () => {
+    const page = parseInt(jumpPageInput.value)
+    if (!isNaN(page)) {
+      changePage(page)
+    }
+  }
+  // 页面挂载时首次加载数据
+  onMounted(() => {
+    getProductList()
+  })
+  // 监听分页参数变化，自动重新请求
+  watch(
+    [currentPage, pageSize, currentCategory],
+    () => {
+      getProductList()
+    },
+    { immediate: false }, // 添加immediate: false避免首次重复请求
+  )
 </script>
 
 <template>
   <div class="main">
     <div class="tab">
       <h2>水果目录</h2>
-      <button class="tablinks">苹果</button>
-      <button class="tablinks">香蕉</button>
-      <button class="tablinks">西瓜</button>
-      <button class="tablinks">西瓜</button>
-      <button class="tablinks">西瓜</button>
-      <button class="tablinks">西瓜</button>
+      <button
+        class="tablinks"
+        @click="changeCategory('')"
+      >
+        全部水果
+      </button>
+      <button
+        class="tablinks"
+        @click="changeCategory('苹果')"
+      >
+        苹果
+      </button>
+      <button
+        class="tablinks"
+        @click="changeCategory('香蕉')"
+      >
+        香蕉
+      </button>
+      <button
+        class="tablinks"
+        @click="changeCategory('西瓜')"
+      >
+        西瓜
+      </button>
+      <button
+        class="tablinks"
+        @click="changeCategory('橙子')"
+      >
+        橙子
+      </button>
+      <button
+        class="tablinks"
+        @click="changeCategory('葡萄')"
+      >
+        葡萄
+      </button>
     </div>
 
     <!-- 水果列表 -->
     <div class="fruit-list">
-      <ul>
+      <!-- 加载状态提示 -->
+      <div
+        v-if="loading"
+        class="loading"
+      >
+        加载中...
+      </div>
+      <!-- 空数据提示 -->
+      <div
+        v-else-if="productList.length === 0"
+        class="empty"
+      >
+        暂无商品数据
+      </div>
+      <ul v-else>
         <li
           class="list"
-          v-for="fruit in paginatedFruits"
+          v-for="fruit in FruitsList"
           :key="fruit.id"
         >
           <div class="fruit-card">
@@ -393,6 +195,7 @@
               :src="fruit.image"
               :alt="fruit.name"
               class="fruit-img"
+              @error="handleImageError"
             />
 
             <div class="fruit-info">
@@ -405,7 +208,10 @@
       </ul>
 
       <!-- 分页模块 -->
-      <div class="pagination">
+      <div
+        class="pagination"
+        v-if="total > 0"
+      >
         <!-- 上一页 -->
         <button
           class="page-btn"
@@ -417,9 +223,9 @@
         <!-- 页码 -->
         <button
           class="page-number"
+          v-for="(page, index) in pageNumbers"
           :class="{ active: page === currentPage, ellipsis: page === '...' }"
           :disabled="page === '...'"
-          v-for="(page, index) in pageNumbers"
           :key="index"
           @click="page !== '...' && changePage(page)"
         >
@@ -451,6 +257,19 @@
 </template>
 
 <style scoped lang="scss">
+  // 加载/空数据样式
+  .loading {
+    text-align: center;
+    padding: 20px;
+    color: #c2185b;
+    font-size: 16px;
+  }
+  .empty {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 16px;
+  }
   .main {
     display: flex;
     flex-wrap: wrap;

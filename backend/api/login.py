@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Annotated
 from sqlmodel import Session, select
 from config import ACCESS_TOKEN_EXPIRE_HOURS
-from schemas.userLogin import UserLogin, LoginResponse
-from schemas.userResponse import UserResponse
+from schemas.user.userLogin import UserLogin, LoginResponse
+from schemas.user.userResponse import UserResponse
 from utils.hashPassword import verify_password
 from utils.token import create_access_token
 from model.user import User

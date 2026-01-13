@@ -3,11 +3,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager  # 导入生命周期装饰器
 from sqlmodel import SQLModel
+from database import async_engine
+from fastapi.staticfiles import StaticFiles
 from api.auth import router as auth_router
 from api.register import router as register
 from api.login import router as login
-from database import async_engine
-from fastapi.staticfiles import StaticFiles
+from api.product import router as product
 
 
 # 创建表
@@ -37,7 +38,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="水果商城用户认证API", lifespan=lifespan)
 
 # 挂载静态文件目录
-app.mount("/static", StaticFiles(directory="static/images"), name="static")
+app.mount("/images", StaticFiles(directory="static/images"), name="images")
 
 # CORS 配置
 app.add_middleware(
@@ -52,6 +53,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(register)
 app.include_router(login)
+app.include_router(product)
 
 
 # 根路径
@@ -63,6 +65,7 @@ def root():
         "endpoints": {
             "register": "/api/register",
             "login": "/api/login",
+            "products": "/api/products",
             "forgot_password": "/api/auth/forgot-password",
             "reset_password": "/api/auth/reset-password",
         },
