@@ -13,17 +13,23 @@
   const router = useRouter()
   const userStore = useUserStore() // 创建仓库实例
   const isLoading = ref(false) // 控制loading显示/隐藏
-  // 使用表单辅助方法
-  const { isLogin, changeForm, showPassword, togglePassword } = useAuthForm()
+
   // 定义响应式的表单数据对象，存储登录/注册的输入内容
   const form = reactive({
     username: '', // 用户名
     email: '', // 注册邮箱
     password: '', // 密码
+    repassword: '', // 确认密码
   })
-  // 获取子组件的引用
-  const FormRef = ref(null)
-
+  // 使用表单辅助方法
+  const { isLogin, changeForm, showPassword, togglePassword } = useAuthForm(form)
+  // 父组件统一的表单重置方法
+  const resetFormData = () => {
+    form.username = ''
+    form.password = ''
+    form.email = ''
+    form.repassword = ''
+  }
   // 定义验证规则函数
   const validateUsername = (username) => {
     const trimmed = username?.trim()
@@ -62,7 +68,16 @@
     // 可以在这里添加更多密码强度检查...
     return { isValid: true }
   }
-
+  // 确认密码验证（必须和密码一致）
+  const validateRepassword = (password, repassword) => {
+    if (!repassword) {
+      return { isValid: false, message: '请输入确认密码！' }
+    }
+    if (repassword !== password) {
+      return { isValid: false, message: '两次输入的密码不一致！' }
+    }
+    return { isValid: true }
+  }
   // 注册请求函数
   const handleRegister = async (e) => {
     e.preventDefault()
@@ -89,7 +104,12 @@
       isLoading.value = false
       return
     }
-
+    const repasswordValidation = validateRepassword(form.password, form.repassword)
+    if (!repasswordValidation.isValid) {
+      ElMessage.error(repasswordValidation.message)
+      isLoading.value = false
+      return
+    }
     // 如果所有验证都通过，则继续执行注册逻辑
     try {
       isLoading.value = true
@@ -100,7 +120,7 @@
       // 提示成功
       ElMessage.success('注册成功')
       // 成功后重置表单
-      FormRef.value.resetForm()
+      resetFormData()
       // 路由跳转
       router.push('/')
     } catch (error) {
@@ -147,8 +167,7 @@
       // 提示成功
       ElMessage.success('登录成功')
       // 成功后重置表单
-      form.username = ''
-      form.password = ''
+      resetFormData()
       // 跳转到首页
       router.push('/')
     } catch (error) {
@@ -195,7 +214,6 @@
     <!-- 动态渲染登录/注册子组件，传递核心方法和状态 -->
     <LoginForm
       v-if="isLogin"
-      ref="FormRef"
       :show-password="showPassword"
       :is-loading="isLoading"
       :form="form"
@@ -205,7 +223,6 @@
     />
     <RegisterForm
       v-else
-      ref="FormRef"
       :show-password="showPassword"
       :is-loading="isLoading"
       :form="form"

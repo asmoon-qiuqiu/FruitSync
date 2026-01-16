@@ -14,7 +14,7 @@
           独自开发维护的水果主题小站哦~旨在为用户提供第一时间的水果资讯和优质的水果购买体验。希望你们能够喜欢这个网站，并提供宝贵的反馈意见，让我们一起把它做得更好！
           <img
             class="manbo"
-            src="../../public/images/manbo2.gif"
+            src="../../../public/images/manbo2.gif"
             alt="曼波"
           />
         </p>
@@ -62,7 +62,7 @@
         <span>（点击链接即可跳转）</span>
 
         <img
-          src="../../public/images/contact.gif"
+          src="../../../public/images/contact.gif"
           alt="唠嗑~"
         />
       </div>

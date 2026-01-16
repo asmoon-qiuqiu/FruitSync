@@ -3,15 +3,14 @@
   import { getProductListApi } from '@/api/product'
   import { ElMessage } from 'element-plus'
   import { BASE_API_URL } from '@/config' // 导入后端基础URL
-  // 1.分页按钮相关逻辑
+  // 1.分页按钮相关逻辑，存储接口返回的商品数据和分页信息
+  const jumpPageInput = ref('') //用于存储跳转输入框的值
   const currentPage = ref(1) // 当前页码
   const pageSize = ref(6) // 每页显示数量
-  const jumpPageInput = ref('') //用于存储跳转输入框的值
-  // 2.存储接口返回的商品数据和分页信息
-  const productList = ref([]) // 商品列表数据
   const total = ref(0) // 总记录数
   const totalPages = ref(1) // 总页数
   const currentCategory = ref('') // 当前选中的分类（默认空，查询所有）
+  const productList = ref([]) // 商品列表数据
   const loading = ref(false) // 加载状态
 
   // 获取商品列表数据函数
@@ -74,35 +73,35 @@
 
   // 生成页码数组（最多显示5个页码）
   const pageNumbers = computed(() => {
-    const pages = []
-    const total = totalPages.value
-    const current = currentPage.value
+    const pages = [] // 存储最终要渲染的分页页码数组（包含数字和省略号）
+    const total = totalPages.value // 总页数（响应式数据）
+    const current = currentPage.value // 当前页码（响应式数据）
 
+    // 场景1：总页数≤5，无需省略号，直接显示所有页码（1~total）
     if (total <= 5) {
-      // 总页数小于等于5，全部显示
       for (let i = 1; i <= total; i++) {
         pages.push(i)
       }
     } else {
-      // 总页数大于5，显示省略号
+      // 场景2：总页数>5，需要显示省略号优化分页展示
       if (current <= 3) {
-        // 当前页在前面
+        // 子场景2.1：当前页在最前面（≤3），显示前4页 + 省略号 + 最后1页（如：1,2,3,4,...,10）
         pages.push(1, 2, 3, 4, '...', total)
       } else if (current >= total - 2) {
-        // 当前页在后面
+        // 子场景2.2：当前页在最后面（≥total-2），显示第1页 + 省略号 + 最后4页（如：1,...,7,8,9,10）
         pages.push(1, '...', total - 3, total - 2, total - 1, total)
       } else {
-        // 当前页在中间
+        // 子场景2.3：当前页在中间，显示第1页 + 省略号 + 当前页前后1页 + 省略号 + 最后1页（如：1,...,5,6,7,...,10）
         pages.push(1, '...', current - 1, current, current + 1, '...', total)
       }
     }
-    return pages
+    return pages // 返回最终的分页页码数组，用于页面渲染
   })
 
   // 图片加载失败的处理函数
   const handleImageError = (e) => {
     // 图片加载失败时显示兜底图
-    e.target.src = `${BASE_API_URL}/images/default-fruit.jpg`
+    e.target.src = `${BASE_API_URL}/images/default.jpg`
     // 也可以隐藏图片：e.target.style.display = 'none'
   }
   // 页码跳转处理函数
@@ -267,8 +266,9 @@
   .empty {
     text-align: center;
     padding: 20px;
-    color: #999;
-    font-size: 16px;
+    color: #c2185b;
+    font-size: 24px;
+    font-weight: bold;
   }
   .main {
     display: flex;
@@ -290,6 +290,7 @@
       background-color: #fff0f5;
       height: auto;
       margin-top: 20px;
+      margin-bottom: 20px;
       padding: 0 5px;
       opacity: 0.9;
 

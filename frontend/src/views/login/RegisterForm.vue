@@ -21,22 +21,11 @@
   const handleSubmit = (e) => {
     emit('submit', e)
   }
-  // 暴露重置表单的方法，供父组件调用
-  const resetForm = () => {
-    props.form.username = ''
-    props.form.email = ''
-    props.form.password = ''
-  }
-
-  // 让父组件能调用子组件的方法
-  defineExpose({ resetForm })
 </script>
 
 <template>
   <form
     class="login-form"
-    action="#"
-    method="get"
     @submit="handleSubmit"
   >
     <h3>账户注册</h3>
@@ -48,6 +37,7 @@
         name="username"
         placeholder="用户名"
         v-model="form.username"
+        :disabled="isLoading"
         novalidate
       />
     </div>
@@ -58,6 +48,7 @@
         name="email"
         placeholder="邮箱"
         v-model="form.email"
+        :disabled="isLoading"
         novalidate
       />
     </div>
@@ -66,9 +57,10 @@
       <input
         class="pwd"
         :type="showPassword ? 'text' : 'password'"
-        name="pwd"
+        name="password"
         placeholder="密码"
         v-model="form.password"
+        :disabled="isLoading"
         novalidate
       />
       <i
@@ -81,6 +73,18 @@
         @click="emit('toggle-password')"
         v-show="!showPassword"
       ></i>
+    </div>
+    <!-- 确认密码输入 -->
+    <div class="login-password">
+      <input
+        class="pwd"
+        :type="showPassword ? 'text' : 'password'"
+        name="repassword"
+        placeholder="确认密码"
+        v-model="form.repassword"
+        :disabled="isLoading"
+        novalidate
+      />
     </div>
 
     <div class="login-button">

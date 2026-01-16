@@ -25,8 +25,6 @@
 <template>
   <form
     class="login-form"
-    action="#"
-    method="get"
     @submit="handleSubmit"
   >
     <h3>账户登录</h3>
@@ -37,6 +35,7 @@
         name="username"
         placeholder="用户名"
         v-model="form.username"
+        :disabled="isLoading"
         novalidate
       />
     </div>
@@ -44,9 +43,10 @@
       <input
         class="pwd"
         :type="showPassword ? 'text' : 'password'"
-        name="pwd"
+        name="password"
         placeholder="密码"
         v-model="form.password"
+        :disabled="isLoading"
         novalidate
       />
       <i

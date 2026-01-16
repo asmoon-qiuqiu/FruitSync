@@ -1,6 +1,7 @@
 <script setup>
   import Header from '@/components/Header.vue'
   import Footer from '@/components/Footer.vue'
+  import Top from './components/Top.vue'
 </script>
 
 <template>
@@ -11,6 +12,8 @@
     <router-view></router-view>
     <!-- 全局底部 -->
     <Footer></Footer>
+    <!-- 全局返回顶部 -->
+    <Top></Top>
   </div>
 </template>
 
