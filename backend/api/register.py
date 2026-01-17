@@ -6,12 +6,12 @@ from sqlmodel import select, Session, or_  # or_ 用于合并查询
 from database import get_session
 from utils.hashPassword import hash_password
 from typing import Annotated
-from pydantic import ValidationError  # 新增：捕获Pydantic校验异常
+from pydantic import ValidationError  # 捕获Pydantic校验异常
 import logging  # 日志记录
 
-# 配置日志（生产环境必备）
+# 配置日志
 logger = logging.getLogger("uvicorn")
-
+# 创建路由器
 router = APIRouter(prefix="/api", tags=["register"])
 
 
