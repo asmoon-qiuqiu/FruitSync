@@ -1,5 +1,5 @@
 import re
-from pydantic import BaseModel, EmailStr, field_validator, ValidationError
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class UserRegister(BaseModel):

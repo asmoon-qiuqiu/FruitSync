@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api", tags=["register"])
       1. 用户名/邮箱唯一性校验
       2. 用户名/密码/邮箱格式由Pydantic模型(UserRegister)前置校验
       3. 密码加密存储（bcrypt算法）
-    #### 入参说明
+    - 入参说明:
     - username: 3-10位，仅含字母、数字、下划线、中文
     - email: 合法邮箱格式
     - password: 至少6位字符
