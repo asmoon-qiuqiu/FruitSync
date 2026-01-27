@@ -13,5 +13,6 @@ export const getProductListApi = (params) => { // 设置默认空对象
         url: "/api/products",
         method: "GET",
         params, //传递查询参数
+
     });
 };

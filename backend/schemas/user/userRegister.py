@@ -13,7 +13,7 @@ class UserRegister(BaseModel):
     """
 
     username: str
-    email: EmailStr
+    email: EmailStr | None = None
     password: str
     repassword: str
     model_config = {"extra": "forbid"}
@@ -44,6 +44,6 @@ class UserRegister(BaseModel):
         """确认密码校验器：必须和password一致"""
         # values 是已校验通过的字段字典（注意字段校验顺序：password先于repassword）
         password = values.data.get("password")  # Pydantic v2 用 values.data 获取字段值
-        if password and v != password:
+        if v != password:
             raise ValueError("两次输入的密码不一致")
         return v

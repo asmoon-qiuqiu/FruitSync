@@ -42,13 +42,23 @@ class Settings(BaseSettings):
     DB_ECHO: bool = Field(default=False, description="是否打印SQL语句")
 
     # ==================== JWT配置 ====================
+    # JWT核心配置项（基于Pydantic Field定义，用于配置校验和文档生成）
+    # 核心密钥，生产环境必须配置高强度随机字符串（建议32位以上），切勿泄露
     SECRET_KEY: str = Field(default="", description="JWT密钥，生产环境必须设置")
+    # JWT签名算法，HS256为对称加密算法，实现简单且性能高，适合中小型系统
     ALGORITHM: str = Field(default="HS256", description="JWT签名算法")
+    # 访问令牌有效期，需平衡用户体验（有效期太短需频繁登录）和安全性（太长风险高）
     ACCESS_TOKEN_EXPIRE_HOURS: int = Field(
         default=6, description="访问令牌过期时间(小时)"
     )
+    # 重置密码令牌有效期，敏感操作令牌建议设置短有效期，降低泄露风险
     RESET_TOKEN_EXPIRE_HOURS: int = Field(
         default=1, description="重置密码令牌过期时间(小时)"
+    )
+    # 验证码过期时间（分钟）
+    # 短信/邮箱验证码等一次性验证场景使用，3-5分钟为行业通用合理时长
+    VERIFY_CODE_EXPIRE_MINUTES: int = Field(
+        default=5, description="验证码过期时间（分钟）"
     )
 
     # ==================== 应用配置 ====================

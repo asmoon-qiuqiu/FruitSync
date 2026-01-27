@@ -17,21 +17,18 @@
         <div class="carousel-item active">
           <img
             src="../../../public/images/banner.jpg"
-            class="d-block w-100"
             alt="水果轮播图1"
           />
         </div>
         <div class="carousel-item">
           <img
             src="../../../public/images/banner2.jpg"
-            class="d-block w-100"
             alt="水果轮播图2"
           />
         </div>
         <div class="carousel-item">
           <img
             src="../../../public/images/banner3.jpg"
-            class="d-block w-100"
             alt="水果轮播图3"
           />
         </div>

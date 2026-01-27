@@ -32,6 +32,7 @@ async def get_products(
     page: Annotated[int, Query(ge=1, description="页码，从1开始")] = 1,
     page_size: Annotated[int, Query(ge=1, le=100, description="每页数量，最大100")] = 6,
     category: Annotated[str | None, Query(description="商品分类筛选")] = None,
+    search: Annotated[str | None, Query(description="商品名称模糊搜索关键词")] = None,
 ):
     """获取商品列表（带分页）"""
     # 构建查询语句
@@ -41,6 +42,10 @@ async def get_products(
     if category:
         statement = statement.where(Product.category == category)
 
+    # 名称模糊搜索（不区分大小写，适配PostgreSQL/MySQL）
+    if search and search.strip():
+        # MySQL 用 like，PostgreSQL 用 ilike
+        statement = statement.where(Product.name.like(f"%{search.strip()}%"))
     # 只显示有库存的商品
     statement = statement.where(Product.in_stock == True)
 
@@ -52,8 +57,13 @@ async def get_products(
     count_statement = select(func.count(Product.id))
     if category:
         count_statement = count_statement.where(Product.category == category)
-    count_statement = count_statement.where(Product.in_stock == True)
 
+    if search and search.strip():
+        count_statement = count_statement.where(
+            Product.name.like(f"%{search.strip()}%")
+        )
+
+    count_statement = count_statement.where(Product.in_stock == True)
     total = await session.scalar(count_statement) or 0
 
     # 计算总页数

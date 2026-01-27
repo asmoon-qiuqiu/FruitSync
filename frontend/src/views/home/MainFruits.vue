@@ -2,8 +2,14 @@
   import { ref, computed, watch, onMounted } from 'vue'
   import { getProductListApi } from '@/api/product'
   import { ElMessage } from 'element-plus'
+  import { useRoute, useRouter } from 'vue-router'
   import { BASE_API_URL } from '@/config' // 导入后端基础URL
-  // 1.分页按钮相关逻辑，存储接口返回的商品数据和分页信息
+
+  // 路由实例
+  const route = useRoute()
+  const router = useRouter()
+
+  // 1.分页按钮相关逻辑和存储接口返回的商品数据和分页信息
   const jumpPageInput = ref('') //用于存储跳转输入框的值
   const currentPage = ref(1) // 当前页码
   const pageSize = ref(6) // 每页显示数量
@@ -13,6 +19,17 @@
   const productList = ref([]) // 商品列表数据
   const loading = ref(false) // 加载状态
 
+  // 搜索关键词（从URL参数获取）
+  const searchKeyword = ref(route.query.search || '')
+  // 搜索状态标识
+  const isSearching = ref(false)
+  // 统一清空搜索方法
+  const clearSearch = () => {
+    searchKeyword.value = ''
+    isSearching.value = false
+    currentPage.value = 1
+    router.push({ query: { ...route.query, search: undefined } })
+  }
   // 获取商品列表数据函数
   const getProductList = async () => {
     loading.value = true
@@ -22,9 +39,9 @@
         page: currentPage.value,
         page_size: pageSize.value, // 每页数量
         category: currentCategory.value || undefined, // 分类为空时不传该参数
+        search: searchKeyword.value.trim() || undefined, // 传递搜索参数-搜索关键词为空时不传该参数
       })
       console.log('完整响应对象:', response)
-      console.log('后端实际返回的数据:', response.data)
       // 解构接口返回的分页数据
       productList.value = response.data.products || []
       total.value = response.data.total || 0
@@ -50,10 +67,11 @@
       image: fruit.image_url ? `${BASE_API_URL}${fruit.image_url}` : '', // 后端字段为image_url,映射前端的image
     }))
   })
+
   // 分类切换函数（绑定到分类按钮）
   const changeCategory = (category) => {
     currentCategory.value = category
-    currentPage.value = 1 // 切换分类后重置到第一页
+    clearSearch() // 切换分类时清空搜索状态
     getProductList()
   }
 
@@ -70,7 +88,13 @@
       }
     }
   }
-
+  // 页码跳转处理函数
+  const handleJumpPageInput = () => {
+    const page = parseInt(jumpPageInput.value)
+    if (!isNaN(page)) {
+      changePage(page)
+    }
+  }
   // 生成页码数组（最多显示5个页码）
   const pageNumbers = computed(() => {
     const pages = [] // 存储最终要渲染的分页页码数组（包含数字和省略号）
@@ -104,31 +128,61 @@
     e.target.src = `${BASE_API_URL}/images/default.jpg`
     // 也可以隐藏图片：e.target.style.display = 'none'
   }
-  // 页码跳转处理函数
-  const handleJumpPageInput = () => {
-    const page = parseInt(jumpPageInput.value)
-    if (!isNaN(page)) {
-      changePage(page)
-    }
-  }
-  // 页面挂载时首次加载数据
-  onMounted(() => {
-    getProductList()
-  })
-  // 监听分页参数变化，自动重新请求
+
+  // 第一个watch：监听分页、分类参数变化（原有逻辑，保留不变）
   watch(
     [currentPage, pageSize, currentCategory],
     () => {
       getProductList()
     },
-    { immediate: false }, // 添加immediate: false避免首次重复请求
+    { immediate: false }, // 避免首次重复请求
   )
+
+  // 第二个watch：单独监听URL中search参数变化（新增的搜索监听，与上面平级）
+  watch(
+    () => route.query.search, // 监听URL中的search查询参数
+    (newSearch) => {
+      searchKeyword.value = newSearch || '' // 更新本地搜索关键词
+      isSearching.value = !!searchKeyword.value.trim() // 更新搜索状态标识
+      currentPage.value = 1 // 搜索参数变化，强制重置到第一页
+      getProductList() // 重新请求商品列表
+    },
+    { immediate: true }, // 立即执行：组件挂载时就触发一次，适配初始的URL搜索参数
+  )
+  // 页面挂载时首次加载数据
+  onMounted(() => {
+    getProductList()
+  })
 </script>
 
 <template>
   <div class="main">
     <div class="tab">
       <h2>水果目录</h2>
+      <!-- 新增：搜索状态提示栏 -->
+      <div
+        v-if="isSearching"
+        class="search-tip"
+        style="padding: 8px; text-align: center; color: #c2185b; font-weight: 500"
+      >
+        🔍 正在搜索：{{ searchKeyword }}
+        <button
+          @click="clearSearch"
+          style="
+            margin-left: 8px;
+            padding: 2px 6px;
+            border: 1px solid #c2185b;
+            border-radius: 4px;
+            background: #fff;
+            color: #c2185b;
+            cursor: pointer;
+            font-size: 14px;
+          "
+        >
+          清空
+        </button>
+      </div>
+      <!-- 分类按钮 -->
       <button
         class="tablinks"
         @click="changeCategory('')"
@@ -167,7 +221,7 @@
       </button>
     </div>
 
-    <!-- 水果列表 -->
+    <!-- 商品列表 -->
     <div class="fruit-list">
       <!-- 加载状态提示 -->
       <div
@@ -181,7 +235,15 @@
         v-else-if="productList.length === 0"
         class="empty"
       >
-        暂无商品数据
+        {{
+          isSearching
+            ? currentCategory
+              ? `未找到"${searchKeyword}"相关的【${currentCategory}】商品`
+              : `未找到"${searchKeyword}"的商品`
+            : currentCategory
+              ? `暂无【${currentCategory}】相关商品`
+              : '暂无商品数据'
+        }}
       </div>
       <ul v-else>
         <li
@@ -278,6 +340,7 @@
     background: url(../../public/images/main.jpg) no-repeat center;
     background-size: cover;
     background-attachment: fixed;
+
     h2 {
       color: #c2185b;
       margin: 15px 0;
@@ -445,7 +508,6 @@
   @media screen and (max-width: 1200px) {
     .main {
       padding: 0;
-
       .tab {
         display: flex;
         flex: 0 0 100%;
@@ -489,11 +551,11 @@
   @media screen and (max-width: 768px) {
     .main {
       padding-top: 45px;
-
+      min-height: calc(100vh - 45px - 60px);
       .fruit-list {
-        padding: 0;
-        margin-bottom: 50px;
-
+        padding: 0 5px;
+        margin-bottom: 0px;
+        min-height: calc(100vh - 150px);
         ul {
           grid-template-columns: repeat(2, 1fr);
           gap: 5px;
@@ -535,7 +597,7 @@
       .pagination {
         flex-wrap: wrap;
         margin-top: 10px;
-        margin-bottom: 10px;
+        margin-bottom: 50px;
 
         .page-btn,
         .page-number {

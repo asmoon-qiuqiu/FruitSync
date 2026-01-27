@@ -39,7 +39,7 @@ async def register(
 ):
     try:
         # ========== 1. 唯一性校验（优化：封装函数，结构化错误） ==========
-        # 构造查询：同时校验用户名和邮箱是否存在（二选一）
+        # 构造查询：同时校验用户名和邮箱是否存在
         statement = select(User).where(
             or_(User.username == user_data.username, User.email == user_data.email)
         )

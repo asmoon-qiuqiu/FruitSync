@@ -1,8 +1,85 @@
 <script setup>
-  import { computed, ref } from 'vue'
+  import { computed, ref, onMounted } from 'vue'
+  import { useRouter } from 'vue-router'
   import { useUserStore } from '@/stores/user'
-
+  import { getProductListApi } from '@/api/product'
+  import Loading from './Loading.vue'
+  import { ElMessage } from 'element-plus'
   const userStore = useUserStore() // 创建仓库实例
+  const router = useRouter()
+  const isLoading = ref(false) // 控制loading显示/隐藏
+  // 1.搜索框逻辑
+  const searchQuery = ref('') // 输入值
+  const showSuggestions = ref(false) // 控制是否显示建议框
+  const showSearchActive = ref(false) // 控制搜索框是否展开
+  const allSuggestions = ref([]) // 所有数据
+  // 2.小屏幕控制菜单显示|隐藏
+  const isMenuOpen = ref(false) // 抽屉是否打开-默认关闭
+  const isMenuVisible = ref(false) // 控制小屏幕抽屉菜单栏
+
+  // 获取搜索建议（商品名称列表）
+  const getAllSuggestions = async () => {
+    try {
+      isLoading.value = true
+      const response = await getProductListApi()
+      if (response.status === 200) {
+        allSuggestions.value = Array.isArray(response.data.products) ? response.data.products : []
+      }
+      console.log('搜索数据', allSuggestions.value)
+    } catch (error) {
+      ElMessage.error('搜索失败')
+      allSuggestions.value = []
+    } finally {
+      isLoading.value = false
+    }
+  }
+  // 计算属性：根据输入过滤建议
+  const filterSuggestions = computed(() => {
+    if (!searchQuery.value.trim()) {
+      return []
+    } else {
+      return allSuggestions.value.filter((item) => {
+        if (typeof item === 'object' && item !== null && typeof item.name === 'string') {
+          return item.name.includes(searchQuery.value)
+        } else {
+          return false
+        }
+      })
+    }
+  })
+
+  // 点击建议项
+  const selectSuggestion = (item) => {
+    searchQuery.value = item.name
+    showSuggestions.value = false // 隐藏建议框
+    showSearchActive.value = true // 保持搜索框展开
+    handleSearch() // 选中建议选项后直接搜索
+  }
+  // 搜索提交核心方法（跳转到首页并携带搜索参数）
+  const handleSearch = () => {
+    const keyWord = searchQuery.value.trim()
+    if (keyWord) {
+      router.push({ path: '/', query: { search: keyWord } }) // URL拼接?search=关键词
+      showSuggestions.value = false // 隐藏建议框
+      showSearchActive.value = true // 保持搜索框展开
+      searchQuery.value = '' // 清空搜索框
+    }
+  }
+  // 处理input获得焦点时建议框和输入框展开
+  const handleFocus = () => {
+    showSuggestions.value = true
+    showSearchActive.value = true
+  }
+  // 处理input失去焦点时建议框隐藏，输入框展开
+  const handleBlur = () => {
+    setTimeout(() => {
+      showSuggestions.value = false
+      // 如果有搜索内容保持展开，否则收起
+      if (!searchQuery.value.trim()) {
+        showSearchActive.value = false
+      }
+    }, 200)
+  }
 
   // 退出登录方法 ✨
   const handleLogout = () => {
@@ -11,11 +88,7 @@
     router.push('/') // 跳转到登录页
   }
 
-  // 1.小屏幕控制菜单显示|隐藏
-  const isMenuOpen = ref(false) // 抽屉是否打开-默认关闭
-  const isMenuVisible = ref(false) // 控制小屏幕抽屉菜单栏
-
-  // 菜单和关闭按钮逻辑
+  // 小屏幕菜单打开和关闭按钮逻辑
   const toggleMenu = () => {
     isMenuOpen.value = !isMenuOpen.value
     if (isMenuOpen.value) {
@@ -28,57 +101,14 @@
       }, 300)
     }
   }
-
-  // 2.搜索框逻辑
-  const searchQuery = ref('') // 输入值
-  const showSuggestions = ref(false) // 控制是否显示建议框
-  const isSearchActive = ref(false) // 控制搜索框是否展开
-  const allSuggestions = [
-    '北方香蕉',
-    '南方香蕉',
-    '进口香蕉',
-    '有机香蕉',
-    '香蕉牛奶',
-    '香蕉干',
-    '苹果',
-    '桔子',
-    '芭乐',
-    '葡萄',
-  ] // 模拟本地数据-后续替换为接口
-
-  // 计算属性：根据输入过滤建议
-  const filterSuggestions = computed(() => {
-    if (!searchQuery.value.trim()) {
-      return []
-    } else {
-      return allSuggestions.filter((item) => item.includes(searchQuery.value))
-    }
+  // 组件挂载时调用接口加载数据
+  onMounted(() => {
+    getAllSuggestions()
   })
-
-  // 点击建议项
-  const selectSuggestion = (item) => {
-    searchQuery.value = item
-    showSuggestions.value = false // 隐藏建议框
-    isSearchActive.value = true // 保持搜索框展开
-  }
-  // 处理input获得焦点时建议框和输入框展开
-  const handleFocus = () => {
-    showSuggestions.value = true
-    isSearchActive.value = true
-  }
-  // 处理input失去焦点时建议框隐藏，输入框展开
-  const handleBlur = () => {
-    setTimeout(() => {
-      showSuggestions.value = false
-      // 如果有搜索内容保持展开，否则收起
-      if (!searchQuery.value.trim()) {
-        isSearchActive.value = false
-      }
-    }, 200)
-  }
 </script>
 
 <template>
+  <Loading :visible="isLoading" />
   <!-- 1. 小屏幕触发（仅在≤600px显示） -->
   <div class="mini-header-fixed">
     <div class="mini-header">
@@ -138,7 +168,7 @@
           >
             <span>{{ userStore.username }}</span>
             <button
-              @click.stop="handleLogout"
+              @click="handleLogout"
               class="logout-btn"
             >
               登出
@@ -182,16 +212,13 @@
     >
       <i class="bi bi-box-arrow-in-right">登录</i>
     </router-link>
-
+    <!-- 搜索框 -->
     <div class="search">
       <div class="search-container">
-        <form
-          @submit.prevent
-          action="#"
-        >
+        <form @submit.prevent="handleSearch">
           <input
             class="search-input"
-            :class="{ active: isSearchActive }"
+            :class="{ active: showSearchActive }"
             type="text"
             placeholder="搜索.."
             name="search"
@@ -199,24 +226,28 @@
             @focus="handleFocus"
             @input="showSuggestions = true"
             @blur="handleBlur"
+            @keyup.enter="handleSearch"
           />
 
-          <button type="submit">
+          <button
+            type="submit"
+            @click="handleSearch"
+          >
             <i class="bi bi-search"></i>
           </button>
         </form>
 
         <!-- 建议框 -->
         <ul
-          v-if="showSuggestions && filterSuggestions.length"
           class="suggestion-box"
+          v-if="showSuggestions && filterSuggestions.length"
         >
           <li
             v-for="(item, index) in filterSuggestions"
             :key="index"
             @click="selectSuggestion(item)"
           >
-            {{ item }}
+            {{ item.name }}
           </li>
         </ul>
       </div>
@@ -450,11 +481,15 @@
               align-items: flex-start;
               gap: 5px;
               padding: 15px;
-              .logout-btn {
-                border: 1px solid #fff0f5;
-                margin-top: 5px;
-                background-color: #fff0f5;
-                color: #c2185b;
+            }
+            .logout-btn {
+              border: 1px solid #fff0f5;
+              margin-top: 5px;
+              background-color: #fff0f5;
+              color: #c2185b;
+              &:hover {
+                background-color: #c2185b;
+                color: #fff;
               }
             }
             .link {
@@ -462,12 +497,6 @@
               padding: 15px;
               text-decoration: none;
               color: #c2185b;
-            }
-
-            .link:hover,
-            .link:active {
-              background-color: #c2185b;
-              color: white;
             }
           }
         }
