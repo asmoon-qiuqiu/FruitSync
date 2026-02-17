@@ -33,7 +33,7 @@
       <input
         type="text"
         name="username"
-        placeholder="用户名"
+        placeholder="用户名或邮箱"
         v-model="form.username"
         :disabled="isLoading"
         novalidate

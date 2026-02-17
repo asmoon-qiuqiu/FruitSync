@@ -220,7 +220,7 @@
             class="search-input"
             :class="{ active: showSearchActive }"
             type="text"
-            placeholder="搜索.."
+            placeholder="搜索商品..."
             name="search"
             v-model="searchQuery"
             @focus="handleFocus"

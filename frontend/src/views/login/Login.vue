@@ -37,12 +37,8 @@
       // 返回错误信息对象，方便区分错误类型或用于国际化
       return { isValid: false, message: '请输入用户名！' }
     }
-    if (trimmed.length < 3 || trimmed.length > 10) {
-      return { isValid: false, message: '用户名长度需在3-10个字符之间！' }
-    }
-    const usernameReg = /^[\u4e00-\u9fa5a-zA-Z0-9_]{3,10}$/
-    if (!usernameReg.test(trimmed)) {
-      return { isValid: false, message: '用户名仅允许包含字母、数字、下划线和中文！' }
+    if (trimmed.length < 3 || trimmed.length > 50) {
+      return { isValid: false, message: '用户名长度需在3-50个字符之间！' }
     }
     return { isValid: true } // 成功时不带消息或带空消息
   }
@@ -214,8 +210,8 @@
     <!-- 动态渲染登录/注册子组件，传递核心方法和状态 -->
     <LoginForm
       v-if="isLogin"
-      :show-password="showPassword"
-      :is-loading="isLoading"
+      :showPassword="showPassword"
+      :isLoading="isLoading"
       :form="form"
       @toggle-password="togglePassword"
       @change-form="changeForm"
@@ -223,8 +219,8 @@
     />
     <RegisterForm
       v-else
-      :show-password="showPassword"
-      :is-loading="isLoading"
+      :showPassword="showPassword"
+      :isLoading="isLoading"
       :form="form"
       @toggle-password="togglePassword"
       @change-form="changeForm"

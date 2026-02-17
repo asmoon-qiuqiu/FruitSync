@@ -1,62 +1,47 @@
 <script setup>
+  // ===================== 1. 第三方依赖导入 =====================
   import { ref, computed, watch, onMounted } from 'vue'
-  import { getProductListApi } from '@/api/product'
   import { ElMessage } from 'element-plus'
   import { useRoute, useRouter } from 'vue-router'
+
+  // ===================== 2. 项目内部导入 =====================
+  import { getProductListApi } from '@/api/product'
   import { BASE_API_URL } from '@/config' // 导入后端基础URL
 
-  // 路由实例
-  const route = useRoute()
-  const router = useRouter()
+  // ===================== 3. 全局实例获取 =====================
+  const route = useRoute() // 当前路由状态对象
+  const router = useRouter() // 路由导航实例
 
-  // 1.分页按钮相关逻辑和存储接口返回的商品数据和分页信息
-  const jumpPageInput = ref('') //用于存储跳转输入框的值
-  const currentPage = ref(1) // 当前页码
-  const pageSize = ref(6) // 每页显示数量
-  const total = ref(0) // 总记录数
-  const totalPages = ref(1) // 总页数
+  // ===================== 4. 响应式状态定义（按业务分组） =====================
+  // 分页相关状态
+  const pagination = ref({
+    jumpPageInput: '', // 用于存储跳转输入框的值
+    currentPage: 1, // 当前页码
+    pageSize: 6, // 每页显示数量
+    total: 0, // 总记录数
+    totalPages: 1, // 总页数
+  })
+  // 分类列表数组
+  const categoryList = ref([
+    { label: '全部水果', value: '' },
+    { label: '苹果', value: '苹果' },
+    { label: '香蕉', value: '香蕉' },
+    { label: '西瓜', value: '西瓜' },
+    { label: '橙子', value: '橙子' },
+    { label: '葡萄', value: '葡萄' },
+  ])
+  // 业务核心状态
   const currentCategory = ref('') // 当前选中的分类（默认空，查询所有）
   const productList = ref([]) // 商品列表数据
   const loading = ref(false) // 加载状态
+  // 搜索相关状态
+  const searchState = ref({
+    keyword: route.query.search || '', // 搜索关键词（从URL参数获取）
+    isSearching: false, // 搜索状态标识
+  })
 
-  // 搜索关键词（从URL参数获取）
-  const searchKeyword = ref(route.query.search || '')
-  // 搜索状态标识
-  const isSearching = ref(false)
-  // 统一清空搜索方法
-  const clearSearch = () => {
-    searchKeyword.value = ''
-    isSearching.value = false
-    currentPage.value = 1
-    router.push({ query: { ...route.query, search: undefined } })
-  }
-  // 获取商品列表数据函数
-  const getProductList = async () => {
-    loading.value = true
-    try {
-      // 调用接口，传递分页和分类参数
-      const response = await getProductListApi({
-        page: currentPage.value,
-        page_size: pageSize.value, // 每页数量
-        category: currentCategory.value || undefined, // 分类为空时不传该参数
-        search: searchKeyword.value.trim() || undefined, // 传递搜索参数-搜索关键词为空时不传该参数
-      })
-      console.log('完整响应对象:', response)
-      // 解构接口返回的分页数据
-      productList.value = response.data.products || []
-      total.value = response.data.total || 0
-      totalPages.value = response.data.total_pages || 1
-    } catch (error) {
-      console.error('获取商品列表失败：', error)
-      productList.value = []
-      total.value = 0
-      totalPages.value = 1
-      ElMessage.error('商品加载失败，请稍后重试')
-    } finally {
-      loading.value = false
-    }
-  }
-  // 直接返回接口获取的当前页数据（后端已做分页）
+  // ===================== 5. 计算属性 =====================
+  // 格式化后的商品列表（映射前后端字段，拼接完整图片URL）
   const FruitsList = computed(() => {
     return productList.value.map((fruit) => ({
       id: fruit.id,
@@ -68,18 +53,85 @@
     }))
   })
 
-  // 分类切换函数（绑定到分类按钮）
+  // 生成页码数组（最多显示核心页码+2个省略号，优化分页展示体验）
+  const pageNumbers = computed(() => {
+    const pages = [] // 存储最终要渲染的分页页码数组（包含数字和省略号）
+    const total = pagination.value.totalPages // 总页数（响应式数据）
+    const current = pagination.value.currentPage // 当前页码（响应式数据）
+
+    // 场景1：总页数≤5，无需省略号，直接显示所有页码（1~total），数组长度=total
+    if (total <= 5) {
+      for (let i = 1; i <= total; i++) {
+        pages.push(i)
+      }
+    } else {
+      // 场景2：总页数>5，需要显示省略号优化分页展示，避免页码过多
+      if (current <= 3) {
+        // 子场景2.1：当前页在最前面（≤3），推6个元素：前4页 + 省略号 + 最后1页（示例：total=10 → [1,2,3,4,'...',10]）
+        pages.push(1, 2, 3, 4, '...', total)
+      } else if (current >= total - 2) {
+        // 子场景2.2：当前页在最后面（≥total-2），推6个元素：第1页 + 省略号 + 最后4页（示例：total=10 → [1,'...',7,8,9,10]）
+        pages.push(1, '...', total - 3, total - 2, total - 1, total)
+      } else {
+        // 子场景2.3：当前页在中间，推7个元素：第1页 + 省略号 + 当前页前后1页 + 省略号 + 最后1页（示例：total=10、current=6 → [1,'...',5,6,7,'...',10]）
+        pages.push(1, '...', current - 1, current, current + 1, '...', total)
+      }
+    }
+    return pages // 返回最终的分页页码数组，用于页面渲染
+  })
+
+  // ===================== 6. 业务方法（按功能分组） =====================
+  // —— 搜索相关方法 ——
+  // 统一清空搜索方法（重置关键词+更新URL+重置页码）
+  const clearSearch = () => {
+    searchState.value.keyword = ''
+    searchState.value.isSearching = false
+    pagination.value.currentPage = 1
+    router.push({ query: { ...route.query, search: undefined } })
+  }
+
+  // —— 核心接口请求方法 ——
+  // 获取商品列表数据函数（分页/分类/搜索参数联动）
+  const getProductList = async () => {
+    loading.value = true
+    try {
+      // 调用接口，传递分页和分类参数
+      const response = await getProductListApi({
+        page: pagination.value.currentPage,
+        page_size: pagination.value.pageSize, // 每页数量
+        category: currentCategory.value || undefined, // 分类为空时不传该参数
+        search: searchState.value.keyword.trim() || undefined, // 传递搜索参数-搜索关键词为空时不传该参数
+      })
+      console.log('完整响应对象:', response)
+      // 解构接口返回的分页数据
+      productList.value = response.data.products || []
+      pagination.value.total = response.data.total || 0
+      pagination.value.totalPages = response.data.total_pages || 1
+    } catch (error) {
+      console.error('获取商品列表失败：', error)
+      productList.value = []
+      pagination.value.total = 0
+      pagination.value.totalPages = 1
+      ElMessage.error('商品加载失败，请稍后重试')
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // —— 分类相关方法 ——
+  // 分类切换函数（绑定到分类按钮，切换后清空搜索并重新请求）
   const changeCategory = (category) => {
     currentCategory.value = category
     clearSearch() // 切换分类时清空搜索状态
     getProductList()
   }
 
-  // 切换页码
+  // —— 分页相关方法 ——
+  // 切换页码（校验合法性，切换后重新请求并滚动到顶部）
   const changePage = (page) => {
-    if (page >= 1 && page <= totalPages.value) {
-      currentPage.value = page // 转递新的页码
-      jumpPageInput.value = '' // 跳转后清空输入框
+    if (page >= 1 && page <= pagination.value.totalPages) {
+      pagination.value.currentPage = page // 传递新的页码
+      pagination.value.jumpPageInput = '' // 跳转后清空输入框
       getProductList() // 切换页码后重新请求接口获取数据
       // 切换页码后滚动到水果列表顶部
       const fruitList = document.querySelector('.fruit-list')
@@ -88,68 +140,47 @@
       }
     }
   }
-  // 页码跳转处理函数
+
+  // 页码跳转处理函数（输入框跳转，校验数字合法性）
   const handleJumpPageInput = () => {
-    const page = parseInt(jumpPageInput.value)
+    const page = parseInt(pagination.value.jumpPageInput)
     if (!isNaN(page)) {
       changePage(page)
     }
   }
-  // 生成页码数组（最多显示5个页码）
-  const pageNumbers = computed(() => {
-    const pages = [] // 存储最终要渲染的分页页码数组（包含数字和省略号）
-    const total = totalPages.value // 总页数（响应式数据）
-    const current = currentPage.value // 当前页码（响应式数据）
 
-    // 场景1：总页数≤5，无需省略号，直接显示所有页码（1~total）
-    if (total <= 5) {
-      for (let i = 1; i <= total; i++) {
-        pages.push(i)
-      }
-    } else {
-      // 场景2：总页数>5，需要显示省略号优化分页展示
-      if (current <= 3) {
-        // 子场景2.1：当前页在最前面（≤3），显示前4页 + 省略号 + 最后1页（如：1,2,3,4,...,10）
-        pages.push(1, 2, 3, 4, '...', total)
-      } else if (current >= total - 2) {
-        // 子场景2.2：当前页在最后面（≥total-2），显示第1页 + 省略号 + 最后4页（如：1,...,7,8,9,10）
-        pages.push(1, '...', total - 3, total - 2, total - 1, total)
-      } else {
-        // 子场景2.3：当前页在中间，显示第1页 + 省略号 + 当前页前后1页 + 省略号 + 最后1页（如：1,...,5,6,7,...,10）
-        pages.push(1, '...', current - 1, current, current + 1, '...', total)
-      }
-    }
-    return pages // 返回最终的分页页码数组，用于页面渲染
-  })
-
-  // 图片加载失败的处理函数
+  // —— 工具方法 ——
+  // 图片加载失败的处理函数（加载失败时显示兜底图）
   const handleImageError = (e) => {
     // 图片加载失败时显示兜底图
     e.target.src = `${BASE_API_URL}/images/default.jpg`
     // 也可以隐藏图片：e.target.style.display = 'none'
   }
 
-  // 第一个watch：监听分页、分类参数变化（原有逻辑，保留不变）
+  // ===================== 7. 监听逻辑（按目标分组） =====================
+  // 监听分页、分类参数变化，重新请求商品列表（非立即执行，避免重复请求）
   watch(
-    [currentPage, pageSize, currentCategory],
+    [() => pagination.value.currentPage, () => pagination.value.pageSize, currentCategory],
     () => {
       getProductList()
     },
     { immediate: false }, // 避免首次重复请求
   )
 
-  // 第二个watch：单独监听URL中search参数变化（新增的搜索监听，与上面平级）
+  // 监听URL中search参数变化，同步搜索状态并重置分页（立即执行，适配初始URL参数）
   watch(
     () => route.query.search, // 监听URL中的search查询参数
     (newSearch) => {
-      searchKeyword.value = newSearch || '' // 更新本地搜索关键词
-      isSearching.value = !!searchKeyword.value.trim() // 更新搜索状态标识
-      currentPage.value = 1 // 搜索参数变化，强制重置到第一页
+      searchState.value.keyword = newSearch || '' // 更新本地搜索关键词
+      searchState.value.isSearching = !!searchState.value.keyword.trim() // 更新搜索状态标识
+      pagination.value.currentPage = 1 // 搜索参数变化，强制重置到第一页
       getProductList() // 重新请求商品列表
     },
     { immediate: true }, // 立即执行：组件挂载时就触发一次，适配初始的URL搜索参数
   )
-  // 页面挂载时首次加载数据
+
+  // ===================== 8. 生命周期钩子 =====================
+  // 页面挂载时首次加载商品列表数据
   onMounted(() => {
     getProductList()
   })
@@ -161,11 +192,11 @@
       <h2>水果目录</h2>
       <!-- 新增：搜索状态提示栏 -->
       <div
-        v-if="isSearching"
+        v-if="searchState.isSearching"
         class="search-tip"
         style="padding: 8px; text-align: center; color: #c2185b; font-weight: 500"
       >
-        🔍 正在搜索：{{ searchKeyword }}
+        🔍 正在搜索：{{ searchState.keyword }}
         <button
           @click="clearSearch"
           style="
@@ -184,40 +215,12 @@
       </div>
       <!-- 分类按钮 -->
       <button
-        class="tablinks"
-        @click="changeCategory('')"
+        :class="['tablinks', { active: currentCategory === item.value }]"
+        v-for="item in categoryList"
+        :key="item.value"
+        @click="changeCategory(item.value)"
       >
-        全部水果
-      </button>
-      <button
-        class="tablinks"
-        @click="changeCategory('苹果')"
-      >
-        苹果
-      </button>
-      <button
-        class="tablinks"
-        @click="changeCategory('香蕉')"
-      >
-        香蕉
-      </button>
-      <button
-        class="tablinks"
-        @click="changeCategory('西瓜')"
-      >
-        西瓜
-      </button>
-      <button
-        class="tablinks"
-        @click="changeCategory('橙子')"
-      >
-        橙子
-      </button>
-      <button
-        class="tablinks"
-        @click="changeCategory('葡萄')"
-      >
-        葡萄
+        {{ item.label }}
       </button>
     </div>
 
@@ -236,10 +239,10 @@
         class="empty"
       >
         {{
-          isSearching
+          searchState.isSearching
             ? currentCategory
-              ? `未找到"${searchKeyword}"相关的【${currentCategory}】商品`
-              : `未找到"${searchKeyword}"的商品`
+              ? `未找到"${searchState.keyword}"相关的【${currentCategory}】商品`
+              : `未找到"${searchState.keyword}"的商品`
             : currentCategory
               ? `暂无【${currentCategory}】相关商品`
               : '暂无商品数据'
@@ -271,13 +274,13 @@
       <!-- 分页模块 -->
       <div
         class="pagination"
-        v-if="total > 0"
+        v-if="pagination.total > 0"
       >
         <!-- 上一页 -->
         <button
           class="page-btn"
-          :disabled="currentPage === 1"
-          @click="changePage(currentPage - 1)"
+          :disabled="pagination.currentPage === 1"
+          @click="changePage(pagination.currentPage - 1)"
         >
           <i class="bi bi-chevron-left"></i>
         </button>
@@ -285,7 +288,7 @@
         <button
           class="page-number"
           v-for="(page, index) in pageNumbers"
-          :class="{ active: page === currentPage, ellipsis: page === '...' }"
+          :class="{ active: page === pagination.currentPage, ellipsis: page === '...' }"
           :disabled="page === '...'"
           :key="index"
           @click="page !== '...' && changePage(page)"
@@ -295,8 +298,8 @@
         <!-- 下一页 -->
         <button
           class="page-btn"
-          :disabled="currentPage === totalPages"
-          @click="changePage(currentPage + 1)"
+          :disabled="pagination.currentPage === pagination.totalPages"
+          @click="changePage(pagination.currentPage + 1)"
         >
           <i class="bi bi-chevron-right"></i>
         </button>
@@ -306,11 +309,12 @@
           <input
             type="number"
             min="1"
-            :max="totalPages"
-            v-model="jumpPageInput"
+            :max="pagination.totalPages"
+            v-model="pagination.jumpPageInput"
             @keyup.enter="handleJumpPageInput"
           />
           <span>页</span>
+          <button @click="handleJumpPageInput">点击跳转</button>
         </div>
       </div>
     </div>
@@ -376,9 +380,10 @@
           color: #ea580c;
         }
 
-        &:active {
-          background-color: #f97316;
-          color: #fff;
+        // 分类按钮选中态样式
+        &.active {
+          background-color: #c2185b;
+          color: #ffffff;
         }
       }
     }
@@ -501,6 +506,15 @@
             -webkit-appearance: none;
             margin: 0;
           }
+        }
+        button {
+          padding: 1px 5px;
+          border: 1px solid #c2185b;
+          border-radius: 4px;
+          background: #fff;
+          color: #c2185b;
+          cursor: pointer;
+          font-size: 12px;
         }
       }
     }
