@@ -96,7 +96,7 @@ class Settings(BaseSettings):
     #     # 从.env文件读取配置
     #     env_file = ".env"
     #     env_file_encoding = "utf-8"
-    #     case_sensitive = True
+    #     case_sensitive = True --字段名与.env 键名是否区分大小写
 
     #  V2 新写法：用 model_config 替代 Config 类
     model_config = SettingsConfigDict(

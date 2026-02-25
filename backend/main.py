@@ -5,11 +5,10 @@ from contextlib import asynccontextmanager  # 用于管理应用生命周期
 from sqlmodel import SQLModel
 from database import async_engine
 from fastapi.staticfiles import StaticFiles
-from api.auth import router as auth_router
 from api.register import router as register
 from api.login import router as login
 from api.product import router as product
-from config import settings  # 使用新的配置系统
+from config import settings  # 配置系统
 import logging
 
 # 配置日志
@@ -80,7 +79,6 @@ app.add_middleware(
 )
 
 # 挂载路由
-app.include_router(auth_router)
 app.include_router(register)
 app.include_router(login)
 app.include_router(product)
