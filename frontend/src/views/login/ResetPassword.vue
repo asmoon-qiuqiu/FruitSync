@@ -33,13 +33,13 @@ const sendCode = async () => {
   if (!form.email) return ElMessage.warning('请输入注册邮箱')
   isLoading.value = true
   try {
-    const res = await service({ url: '/api/send-code', method: 'POST', data: { email: form.email } })
+    const res = await service({ url: '/api/password/send-code', method: 'POST', data: { email: form.email } })
     ElMessage.success(res.data?.message || '验证码已发送')
     if (res.data?.debug_code) console.debug('debug_code:', res.data.debug_code)
     startCountdown(60)
     step.value = 2
   } catch (err) {
-    ElMessage.error('发送验证码失败，请检查邮箱是否正确'|| err.message || err?.message  )
+    ElMessage.error(err.message || err?.message || '发送验证码失败')
   } finally {
     isLoading.value = false
   }
@@ -49,7 +49,7 @@ const verifyCode = async () => {
   if (!form.code) return ElMessage.warning('请输入验证码')
   isLoading.value = true
   try {
-    const res = await service({ url: '/api/verify-code', method: 'POST', data: { email: form.email, code: form.code } })
+    const res = await service({ url: '/api/password/verify-code', method: 'POST', data: { email: form.email, code: form.code } })
     ElMessage.success(res.data?.message || '验证码验证成功')
     form.reset_token = res.data?.reset_token
     step.value = 3
@@ -67,7 +67,7 @@ const resetPassword = async () => {
 
   isLoading.value = true
   try {
-    const res = await service({ url: '/api/reset', method: 'POST', data: { token: form.reset_token, new_password: form.new_password } })
+    const res = await service({ url: '/api/password/reset', method: 'POST', data: { token: form.reset_token, new_password: form.new_password } })
     ElMessage.success(res.data?.message || '密码重置成功')
     router.push('/login')
   } catch (err) {
@@ -96,8 +96,8 @@ onBeforeUnmount(() => {
 
       <div v-if="step >= 2" class="field">
         <input type="text" placeholder="验证码" v-model="form.code" :disabled="isLoading || step !== 2" />
-        <button class="small" type="button" @click="sendCode" :disabled="countdown>0 || isLoading">
-          <span v-if="countdown>0">重新发送 ({{countdown}}s)</span>
+        <button class="small" type="button" @click="sendCode" :disabled="countdown > 0 || isLoading">
+          <span v-if="countdown > 0">重新发送 ({{ countdown }}s)</span>
           <span v-else>重新发送</span>
         </button>
       </div>
@@ -110,9 +110,12 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="actions">
-        <button v-if="step === 1" type="button" @click="sendCode" :disabled="isLoading">{{ isLoading ? '发送中...' : '发送验证码' }}</button>
-        <button v-else-if="step === 2" type="button" @click="verifyCode" :disabled="isLoading">{{ isLoading ? '验证中...' : '验证验证码' }}</button>
-        <button v-else type="button" @click="resetPassword" :disabled="isLoading">{{ isLoading ? '提交中...' : '重置密码' }}</button>
+        <button v-if="step === 1" type="button" @click="sendCode" :disabled="isLoading">{{ isLoading ? '发送中...' :
+          '发送验证码' }}</button>
+        <button v-else-if="step === 2" type="button" @click="verifyCode" :disabled="isLoading">{{ isLoading ? '验证中...' :
+          '验证验证码' }}</button>
+        <button v-else type="button" @click="resetPassword" :disabled="isLoading">{{ isLoading ? '提交中...' : '重置密码'
+        }}</button>
       </div>
 
       <div class="extra">
@@ -123,66 +126,87 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-.reset-wrapper{
-  display:flex;
-  justify-content:center;
-  align-items:center;
+.reset-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 40px 0;
+  min-height: calc(100vh - 176px);
+  background: url('@public/images/login.jpg') no-repeat center;
+  background-size: cover;
+  background-attachment: fixed;
 }
-.reset-form{
-  width:420px;
-  padding:30px;
-  background:#f9fafb;
-  border-radius:8px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.06);
-  display:flex;
-  flex-direction:column;
 
-  h3{margin:0 0 6px}
-  p{color:#666;margin:0 0 18px}
+.reset-form {
+  width: 420px;
+  padding: 30px;
+  background: #f9fafb;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
 
-  .field{
-    display:flex;
-    align-items:center;
-    margin-bottom:12px;
+  h3 {
+    margin: 0 0 6px
+  }
 
-    input{
-      flex:1;
-      padding:10px;
-      border-radius:8px;
-      border:1px solid #f1f2f5;
-      box-shadow:0 2px 8px rgba(0,0,0,0.03);
+  p {
+    color: #666;
+    margin: 0 0 18px
+  }
+
+  .field {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #f1f2f5;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
-    .small{
-      margin-left:8px;
-      padding:8px 10px;
-      border-radius:6px;
-      border:none;
-      background:#db729b;
-      color:#fff;
-      cursor:pointer;
+    .small {
+      margin-left: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      background: #db729b;
+      color: #fff;
+      cursor: pointer;
     }
   }
 
-  .actions{margin-top:8px;
-    button{
-      width:100%;
-      padding:12px 18px;
-      border-radius:10px;
-      border:none;
-      background:#db729b;
-      color:#fff;
-      font-size:16px;
+  .actions {
+    margin-top: 8px;
+
+    button {
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: none;
+      background: #db729b;
+      color: #fff;
+      font-size: 16px;
     }
   }
 
-  .extra{margin-top:12px;text-align:center;
-    a{color:#2b99fc}
+  .extra {
+    margin-top: 12px;
+    text-align: center;
+
+    a {
+      color: #2b99fc
+    }
   }
 }
 
 @media screen and (max-width: 768px) {
-  .reset-form{width:100%;padding:20px}
+  .reset-form {
+    width: 100%;
+    padding: 20px
+  }
 }
 </style>

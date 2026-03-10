@@ -11,8 +11,8 @@ from database import get_session
 from datetime import timedelta, datetime
 import logging  # 导入日志模块
 
-# 配置日志（与注册接口保持一致，使用uvicorn日志器）
-logger = logging.getLogger("uvicorn")
+# 配置日志（可根据需要调整日志级别、格式和输出位置）
+logger = logging.getLogger(__name__)
 # 创建路由器
 router = APIRouter(prefix="/api", tags=["login"])
 

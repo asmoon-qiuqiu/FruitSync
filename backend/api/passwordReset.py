@@ -25,8 +25,8 @@ from utils.token import create_reset_token
 from config import settings
 import jwt
 
-logger = logging.getLogger("uvicorn")
-router = APIRouter(prefix="/api", tags=["passwordReset"])
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/api/password", tags=["password-reset"])
 
 
 def generate_verification_code() -> str:

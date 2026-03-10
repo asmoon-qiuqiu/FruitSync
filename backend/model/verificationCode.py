@@ -30,11 +30,11 @@ class VerificationCode(SQLModel, table=True):
     email: str = Field(index=True, max_length=100)
     # 验证码：6位数字，索引加速查询
     code: str = Field(index=True, max_length=6)
-    # 验证码过期时间：用于判断验证码是否有效
-    expires_at: datetime
     # 验证码使用状态：默认未使用（False），使用后标记为已使用（True）
     is_used: bool = Field(default=False)
     # 验证码类型：password_reset-密码重置，register-注册验证等
     code_type: str = Field(default="password_reset", max_length=20)
     # 记录创建时间：默认使用当前时间
     created_at: datetime = Field(default_factory=datetime.now)
+    # 验证码过期时间：用于判断验证码是否有效
+    expires_at: datetime = Field(default_factory=datetime.now)

@@ -10,7 +10,7 @@ from pydantic import ValidationError  # 捕获Pydantic校验异常
 import logging  # 日志记录
 
 # 配置日志
-logger = logging.getLogger("uvicorn")
+logger = logging.getLogger(__name__)
 # 创建路由器
 router = APIRouter(prefix="/api", tags=["register"])
 
