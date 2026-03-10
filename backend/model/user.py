@@ -36,6 +36,6 @@ class User(SQLModel, table=True):
     # 账户状态：默认启用
     is_active: bool = Field(default=True)
     # 创建时间：动态生成当前时间，无需手动传入
-    created_at: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(default_factory= datetime.now)
     # 更新时间：动态生成当前时间，后续可更新
     updated_at: datetime = Field(default_factory=datetime.now)

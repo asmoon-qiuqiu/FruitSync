@@ -39,7 +39,7 @@ const sendCode = async () => {
     startCountdown(60)
     step.value = 2
   } catch (err) {
-    ElMessage.error(err.message || err?.message || '发送验证码失败')
+    ElMessage.error(err?.message || err.message || '发送验证码失败')
   } finally {
     isLoading.value = false
   }
@@ -95,7 +95,7 @@ onBeforeUnmount(() => {
       </div>
 
       <div v-if="step >= 2" class="field">
-        <input type="text" placeholder="验证码" v-model="form.code" :disabled="isLoading || step !== 2" />
+        <input type="text" placeholder="验证码" maxlength="6" v-model="form.code" :disabled="isLoading || step !== 2" />
         <button class="small" type="button" @click="sendCode" :disabled="countdown > 0 || isLoading">
           <span v-if="countdown > 0">重新发送 ({{ countdown }}s)</span>
           <span v-else>重新发送</span>

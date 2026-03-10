@@ -83,7 +83,7 @@ service.interceptors.response.use(
                     break;
 
                 case 500:
-                    errorMsg = "服务器内部错误";
+                    errorMsg = data.detail || data.message || errorMsg;
                     break;
 
                 default:

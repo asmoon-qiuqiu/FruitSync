@@ -6,9 +6,9 @@
 依赖：SQLModel（ORM模型）、datetime（时间字段类型）、Field（字段约束定义）
 """
 
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, DateTime
 from datetime import datetime
-
+from zoneinfo import ZoneInfo
 
 class VerificationCode(SQLModel, table=True):
     """
@@ -35,6 +35,13 @@ class VerificationCode(SQLModel, table=True):
     # 验证码类型：password_reset-密码重置，register-注册验证等
     code_type: str = Field(default="password_reset", max_length=20)
     # 记录创建时间：默认使用当前时间
-    created_at: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(ZoneInfo("Asia/Shanghai")),
+        sa_type=DateTime(timezone=True)
+    )
     # 验证码过期时间：用于判断验证码是否有效
-    expires_at: datetime = Field(default_factory=datetime.now)
+    expires_at: datetime = Field(
+        default_factory=lambda: datetime.now(ZoneInfo("Asia/Shanghai")),
+        sa_type=DateTime(timezone=True)
+    )
+    

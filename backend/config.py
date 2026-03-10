@@ -52,8 +52,8 @@ class Settings(BaseSettings):
         default=6, description="访问令牌过期时间(小时)"
     )
     # 重置密码令牌有效期，敏感操作令牌建议设置短有效期，降低泄露风险
-    RESET_TOKEN_EXPIRE_HOURS: int = Field(
-        default=1, description="重置密码令牌过期时间(小时)"
+    RESET_TOKEN_EXPIRE_MINUTES: int = Field(
+        default=5, description="重置密码令牌过期时间(分钟)"
     )
     # 验证码过期时间（分钟）
     # 短信/邮箱验证码等一次性验证场景使用，3-5分钟为行业通用合理时长
@@ -155,4 +155,4 @@ DATABASE_URL = settings.DATABASE_URL
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_HOURS = settings.ACCESS_TOKEN_EXPIRE_HOURS
-RESET_TOKEN_EXPIRE_HOURS = settings.RESET_TOKEN_EXPIRE_HOURS
+RESET_TOKEN_EXPIRE_MINUTES = settings.RESET_TOKEN_EXPIRE_MINUTES

@@ -5,9 +5,11 @@
 依赖：FastAPI（路由框架）、SQLModel（数据库操作）、JWT（令牌生成）
 """
 
+from ast import expr
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import select, Session
+from sqlmodel import select, Session, update
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 import random
 import logging
 
@@ -65,7 +67,7 @@ async def send_verification_code(
             return {"message": "如果该邮箱已注册，验证码将发送到您的邮箱"}
 
         # 2. 防刷校验：检查60秒内是否已发送验证码
-        one_minute_ago = datetime.now(timezone.utc) - timedelta(seconds=60)
+        one_minute_ago = datetime.now(ZoneInfo("Asia/Shanghai")) - timedelta(seconds=60)
         recent_code_statement = (
             select(VerificationCode)
             .where(
@@ -78,21 +80,26 @@ async def send_verification_code(
         recent_code = (await session.exec(recent_code_statement)).first()
 
         if recent_code:
-            remaining_seconds = 60 - int(
-                (datetime.now(timezone.utc) - recent_code.created_at).total_seconds()
-            )
-            # 仅当剩余秒数>0时才抛出异常，避免负数情况
-            if remaining_seconds > 0:
-              raise HTTPException(
-                  status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                  detail=f"验证码发送过于频繁，请{remaining_seconds}秒后再试",
-              )
+            created_at = recent_code.created_at
 
+            # 统一时区，不再报时区错误
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
+
+            remaining_seconds = 60 - int(
+                (datetime.now(ZoneInfo("Asia/Shanghai")) - created_at).total_seconds()
+            )
+
+            if remaining_seconds > 0:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=f"验证码发送过于频繁，请{remaining_seconds}秒后再试",
+                )
         # 3. 生成6位数字验证码
         code = generate_verification_code()
 
         # 4. 计算验证码过期时间（5分钟）
-        expires_at = datetime.now(timezone.utc) + timedelta(
+        expires_at = datetime.now(ZoneInfo("Asia/Shanghai")) + timedelta(
             minutes=settings.VERIFY_CODE_EXPIRE_MINUTES
         )
 
@@ -104,7 +111,6 @@ async def send_verification_code(
             code_type="password_reset",
         )
         session.add(verification)
-        await session.commit()
 
         # 6. 发送验证码邮件
         email_sent = email_service.send_verification_code(request.email, code)
@@ -116,6 +122,7 @@ async def send_verification_code(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="验证码邮件发送失败，请稍后重试",
             )
+        await session.commit()
 
         logger.info(
             f"验证码发送成功：邮箱={request.email}，验证码={code}（仅开发环境日志）"
@@ -129,8 +136,10 @@ async def send_verification_code(
         }
 
     except HTTPException:
+        await session.rollback()
         raise
     except Exception as e:
+        await session.rollback()
         logger.error(
             f"发送验证码失败：邮箱={request.email}，错误={str(e)}", exc_info=True
         )
@@ -176,8 +185,10 @@ async def verify_code(
                 VerificationCode.code == request.code,
                 VerificationCode.code_type == "password_reset",
                 VerificationCode.is_used == False,
+                VerificationCode.expires_at
+                >= datetime.now(ZoneInfo("Asia/Shanghai")),  # 只查未过期的
             )
-            .order_by(VerificationCode.created_at.desc())
+            .with_for_update()
         )
         verification = (await session.exec(statement)).first()
 
@@ -190,7 +201,13 @@ async def verify_code(
             )
 
         # 3. 验证码过期校验
-        if datetime.now(timezone.utc) > verification.expires_at:
+        now = datetime.now(ZoneInfo("Asia/Shanghai"))
+        expires_at = verification.expires_at
+        # 如果数据库取出的expires_at没有时区信息，默认设置为上海时区
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
+
+        if now > expires_at:
             logger.warning(
                 f"验证码验证失败：验证码已过期，邮箱={request.email}，验证码={request.code}"
             )
@@ -200,11 +217,25 @@ async def verify_code(
             )
 
         # 4. 标记验证码为已使用
-        verification.is_used = True
-        session.add(verification)
+        update_stmt = (
+            update(VerificationCode)
+            .where(
+                VerificationCode.id == verification.id,
+                VerificationCode.is_used == False,  # 再次校验，防止并发修改
+            )
+            .values(is_used=True)
+        )
+        result = await session.exec(update_stmt)
         await session.commit()
+        if result.rowcount == 0:
+            logger.warning(
+                f"验证码验证失败：验证码已被其他请求使用，邮箱={request.email}，验证码={request.code}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="验证码已失效"
+            )
 
-        # 5. 生成重置密码令牌（JWT，有效期1小时）
+        # 5. 生成重置密码令牌（JWT，有效期5分钟）
         reset_token = create_reset_token({"email": request.email, "type": "reset"})
 
         logger.info(f"验证码验证成功：邮箱={request.email}")
@@ -212,12 +243,14 @@ async def verify_code(
         return {
             "message": "验证码验证成功",
             "reset_token": reset_token,
-            "expires_in": settings.RESET_TOKEN_EXPIRE_HOURS * 3600,  # 秒数
+            "expires_in": settings.RESET_TOKEN_EXPIRE_MINUTES * 60,  # 秒数
         }
 
     except HTTPException:
+        await session.rollback()
         raise
     except Exception as e:
+        await session.rollback()
         logger.error(
             f"验证验证码失败：邮箱={request.email}，错误={str(e)}", exc_info=True
         )
@@ -287,19 +320,22 @@ async def reset_password(
 
         # 4. 更新用户密码
         user.hashed_password = hash_password(request.new_password)
-        user.updated_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(ZoneInfo("Asia/Shanghai"))
+
+        user_id = user.id
+        username = user.username
 
         session.add(user)
         await session.commit()
 
         # 5. 发送密码重置成功通知邮件（异步发送，失败不影响主流程）
         try:
-            email_service.send_password_reset_success(email, user.username)
+            email_service.send_password_reset_success(email, username)
         except Exception as e:
             logger.warning(f"密码重置成功通知邮件发送失败：{str(e)}")
 
         logger.info(
-            f"密码重置成功：用户ID={user.id}，用户名={user.username}，邮箱={email}"
+            f"密码重置成功：用户ID={user_id}，用户名={username}，邮箱={email}"
         )
 
         return {"message": "密码重置成功，请使用新密码登录"}
