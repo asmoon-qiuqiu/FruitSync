@@ -26,7 +26,7 @@ from config import settings
 import jwt
 
 logger = logging.getLogger("uvicorn")
-router = APIRouter(prefix="/api/password", tags=["password-reset"])
+router = APIRouter(prefix="/api", tags=["passwordReset"])
 
 
 def generate_verification_code() -> str:

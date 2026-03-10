@@ -68,7 +68,7 @@
         >
           立即注册
         </a>
-        <a href="#">忘记密码？</a>
+        <router-link :to="{'name': 'resetPassword'}">忘记密码？</router-link>
       </div>
       <button
         type="submit"

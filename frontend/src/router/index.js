@@ -13,7 +13,6 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('../views/login/Login.vue'),
-      // meta: { requiresAuth: true } // 需要登录才能访问
     },
 
     {
@@ -24,8 +23,22 @@ const router = createRouter({
     {
       path: '/contact',
       name: 'contact',
-      component: () => import('../views/contact/Contact.vue')
+      component: () => import('../views/contact/Contact.vue'),
+      // meta: { requiresAuth: true } // 需要登录才能访问
     },
+     {
+      path: '/reset-password',
+      name: 'resetPassword',
+      component: () => import('../views/login/ResetPassword.vue'),
+      // meta: { requiresAuth: true } // 需要登录才能访问
+    },
+    // 小屏幕个人中心路由
+    {
+      path: '/myinfo',
+      name: 'myinfo',
+      component: () => import('../views/personal/MyInfo.vue'),
+    },
+
   ],
 })
 

@@ -18,7 +18,7 @@
     </router-link>
 
     <router-link
-      to="/my"
+      to="/myinfo"
       class="nav-item"
     >
       <i class="bi bi-person-circle"></i>

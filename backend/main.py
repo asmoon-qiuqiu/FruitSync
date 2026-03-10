@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from api.register import router as register
 from api.login import router as login
 from api.product import router as product
+from api.passwordReset import router as passwordReset
 from config import settings  # 配置系统
 import logging
 
@@ -82,7 +83,7 @@ app.add_middleware(
 app.include_router(register)
 app.include_router(login)
 app.include_router(product)
-
+app.include_router(passwordReset)
 
 # 根路径
 @app.get("/")

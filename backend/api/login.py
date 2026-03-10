@@ -36,7 +36,7 @@ async def login(
     login_data: UserLogin, session: Annotated[Session, Depends(get_session)]
 ):
     try:
-        # 新增：记录登录请求开始（脱敏处理，密码不打印）
+        # 记录登录请求开始（脱敏处理，密码不打印）
         logger.info(
             f"用户登录请求：登录账号={login_data.username}，请求时间={datetime.now()}"
         )

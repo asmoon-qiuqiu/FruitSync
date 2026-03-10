@@ -190,9 +190,9 @@
 
   <!-- 3. 大屏幕导航（原导航，≥601px显示） -->
   <div class="header">
-    <router-link to="/">首页</router-link>
-    <router-link to="about">关于此站</router-link>
-    <router-link to="contact">联系方式</router-link>
+    <router-link :to="{ name: 'home' }">首页</router-link>
+    <router-link :to="{ name: 'about' }">关于此站</router-link>
+    <router-link :to="{ name: 'contact' }">联系方式</router-link>
     <!-- 动态显示用户名/登录按钮 -->
     <div
       v-if="userStore.isLoggedIn"
