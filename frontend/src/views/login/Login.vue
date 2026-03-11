@@ -305,7 +305,7 @@
 
   @media screen and (max-width: 768px) {
     .bg {
-      height: calc(100vh - 60px);
+      background-attachment: fixed; // 小屏幕下背景固定，避免滚动时背景错位
     }
 
     .login {

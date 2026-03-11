@@ -131,8 +131,8 @@ async def send_verification_code(
         return {
             "message": "验证码已发送到您的邮箱，请查收",
             "expires_in": settings.VERIFY_CODE_EXPIRE_MINUTES * 60,  # 秒数
-            # 开发环境返回验证码（生产环境删除）
-            "debug_code": code if settings.is_development else None,
+            # # 开发环境返回验证码（生产环境删除）
+            # "debug_code": code if settings.is_development else None,
         }
 
     except HTTPException:

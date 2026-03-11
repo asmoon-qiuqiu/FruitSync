@@ -8,7 +8,7 @@
   </div>
 
   <!-- 小屏幕底部导航 -->
-  <div class="mini-footer">
+  <!-- <div class="mini-footer">
     <router-link
       to="/"
       class="nav-item"
@@ -24,7 +24,7 @@
       <i class="bi bi-person-circle"></i>
       <p>我的</p>
     </router-link>
-  </div>
+  </div> -->
 </template>
 
 <style scoped lang="scss">
@@ -86,44 +86,44 @@
       display: none;
     }
 
-    .mini-footer {
-      background-color: #fff0f5;
-      position: fixed;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      left: 0;
-      bottom: 0;
-      width: 100%;
-      z-index: 1001;
-      .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: #333;
-        text-decoration: none;
+    // .mini-footer {
+    //   background-color: #fff0f5;
+    //   position: fixed;
+    //   display: flex;
+    //   justify-content: space-around;
+    //   align-items: center;
+    //   left: 0;
+    //   bottom: 0;
+    //   width: 100%;
+    //   z-index: 1001;
+    //   .nav-item {
+    //     display: flex;
+    //     flex-direction: column;
+    //     align-items: center;
+    //     justify-content: center;
+    //     color: #333;
+    //     text-decoration: none;
 
-        &.router-link-active {
-          color: #c2185b; // 激活时变色
-        }
-      }
+    //     &.router-link-active {
+    //       color: #c2185b; // 激活时变色
+    //     }
+    //   }
 
-      .bi {
-        font-size: 24px;
-        margin-top: 4px;
-      }
+    //   .bi {
+    //     font-size: 24px;
+    //     margin-top: 4px;
+    //   }
 
-      p {
-        font-size: 14px;
-        margin: 0;
-      }
-    }
+    //   p {
+    //     font-size: 14px;
+    //     margin: 0;
+    //   }
+    // }
   }
 
-  @media screen and (min-width: 769px) {
-    .mini-footer {
-      display: none;
-    }
-  }
+  // @media screen and (min-width: 769px) {
+  //   .mini-footer {
+  //     display: none;
+  //   }
+  // }
 </style>

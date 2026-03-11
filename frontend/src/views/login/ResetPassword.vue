@@ -1,8 +1,8 @@
 <script setup>
 import { ref, reactive, onBeforeUnmount } from 'vue'
-import service from '@/utils/request'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { sendCodeApi, verifyCodeApi, resetPasswordApi } from '@/api/resetPassword'
 
 // 三步：1. 发送验证码 2. 验证验证码 3. 重置密码
 const step = ref(1)
@@ -33,9 +33,9 @@ const sendCode = async () => {
   if (!form.email) return ElMessage.warning('请输入注册邮箱')
   isLoading.value = true
   try {
-    const res = await service({ url: '/api/password/send-code', method: 'POST', data: { email: form.email } })
+    const res = await sendCodeApi({ email: form.email })
     ElMessage.success(res.data?.message || '验证码已发送')
-    if (res.data?.debug_code) console.debug('debug_code:', res.data.debug_code)
+    // if (res.data?.debug_code) console.debug('debug_code:', res.data.debug_code)
     startCountdown(60)
     step.value = 2
   } catch (err) {
@@ -49,7 +49,7 @@ const verifyCode = async () => {
   if (!form.code) return ElMessage.warning('请输入验证码')
   isLoading.value = true
   try {
-    const res = await service({ url: '/api/password/verify-code', method: 'POST', data: { email: form.email, code: form.code } })
+    const res = await verifyCodeApi({ email: form.email, code: form.code })
     ElMessage.success(res.data?.message || '验证码验证成功')
     form.reset_token = res.data?.reset_token
     step.value = 3
@@ -67,7 +67,7 @@ const resetPassword = async () => {
 
   isLoading.value = true
   try {
-    const res = await service({ url: '/api/password/reset', method: 'POST', data: { token: form.reset_token, new_password: form.new_password } })
+    const res = await resetPasswordApi({ token: form.reset_token, new_password: form.new_password })
     ElMessage.success(res.data?.message || '密码重置成功')
     router.push('/login')
   } catch (err) {
@@ -204,8 +204,12 @@ onBeforeUnmount(() => {
 }
 
 @media screen and (max-width: 768px) {
+  .reset-wrapper {
+    min-height: calc(100vh);
+  }
+
   .reset-form {
-    width: 100%;
+    width: 90%;
     padding: 20px
   }
 }
