@@ -8,7 +8,7 @@ from config import (
 )
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """生成JWT Token"""
     to_encode = data.copy()
     if expires_delta:
@@ -20,7 +20,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-def create_reset_token(data: dict):
+def create_reset_token(data: dict) -> str:
     """生成密码重置 Token（5分钟过期）"""
     expire = datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
     to_encode = data.copy()
