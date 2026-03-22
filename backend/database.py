@@ -1,5 +1,5 @@
 # 导入SQLAlchemy异步引擎创建函数（核心依赖）
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 # 导入SQLModel异步会话类（SQLModel对SQLAlchemy AsyncSession的封装）
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -30,6 +30,14 @@ async_engine = create_async_engine(
     pool_recycle=3600,
 )
 
+# 创建异步会话工厂（SQLAlchemy核心组件，生成会话对象）
+# 作用：封装会话创建规则，所有会话都通过该工厂生成，保证一致性
+AsyncSessionFactory = async_sessionmaker(
+    bind=async_engine,          # 绑定上面创建的异步引擎
+    class_=AsyncSession,        # 指定会话类为SQLModel的AsyncSession（兼容SQLAlchemy）
+    expire_on_commit=False,     # 提交后不自动过期实例（避免重复查询，生产环境推荐）
+    autoflush=False,            # 关闭自动刷新（按需手动flush，更可控）
+)
 
 # ==================== 异步数据库会话依赖 ====================
 async def get_session():
@@ -39,26 +47,27 @@ async def get_session():
     特性：异常自动回滚、错误日志记录、会话自动关闭
     """
     # 创建异步会话（async with 上下文管理器：自动管理会话的创建/关闭）
-    async with AsyncSession(async_engine) as session:
-        try:
-            # 生成会话对象给依赖该函数的接口/业务函数使用
-            # yield特性：函数执行到此处暂停，会话被外部使用；外部调用完成后，继续执行后续代码
-            yield session
+    
+    # 从工厂创建会话
+    session = AsyncSessionFactory()
+    try:
+        # 生成会话对象给依赖该函数的接口/业务函数使用
+        # yield特性：函数执行到此处暂停，会话被外部使用；外部调用完成后，继续执行后续代码
+        yield session
 
-        except Exception as e:
-            # 捕获会话使用过程中所有异常（如SQL执行错误、连接异常等）
-            # exc_info=True：记录完整异常堆栈，便于定位错误代码行
-            logger.error(f"数据库会话执行异常：{str(e)}", exc_info=True)
-            # 异常时回滚事务：避免未提交的脏数据残留，保证数据一致性
-            await session.rollback()
-            # 重新抛出异常：让FastAPI捕获并返回500错误给前端，不吞异常
-            raise
+    except Exception as e:
+        # 捕获会话使用过程中所有异常（如SQL执行错误、连接异常等）
+        # exc_info=True：记录完整异常堆栈，便于定位错误代码行
+        logger.error(f"数据库会话执行异常：{str(e)}", exc_info=True)
+        # 异常时回滚事务：避免未提交的脏数据残留，保证数据一致性
+        await session.rollback()
+        # 重新抛出异常：让FastAPI捕获并返回500错误给前端，不吞异常
+        raise
 
-        finally:
-            # 最终块：无论是否发生异常，都会执行
-            # 补充说明：async with 理论上会自动关闭会话，但手动close是兜底措施
-            # 防止极端场景下（如async with内部异常）会话未正常关闭导致连接池耗尽
-            await session.close()
+    finally:
+        # 最终块：无论是否发生异常，都会执行，确保会话被正确关闭，释放数据库连接回连接池
+        # 防止极端场景下（如async with内部异常）会话未正常关闭导致连接池耗尽
+        await session.close()
 
 
 # ==================== 注意事项 ====================
