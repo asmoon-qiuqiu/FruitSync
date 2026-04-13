@@ -2,17 +2,35 @@
 import router from '@/router'
 import axios from 'axios'
 
-// 1. 创建Axios实例，配置基础参数
+// 1. 根据环境配置不同的基础参数（核心：区分开发/生产环境）
+const envConfig = {
+  // 开发环境：测试接口 + 更长的超时（方便调试）
+  development: {
+    baseURL: import.meta.env.VITE_API_BASE_URL,
+    timeout: 10000 // 开发环境超时设长一点
+  },
+  // 生产环境：正式接口 + 合理超时
+  production: {
+    baseURL: import.meta.env.VITE_API_BASE_URL,
+    timeout: 5000 // 生产环境超时更严格
+  }
+}
+
+// 自动识别当前环境（打包后会自动变成production）
+const currentEnv = import.meta.env.DEV ? 'development' : 'production'
+const { baseURL, timeout } = envConfig[currentEnv]
+
+// 2. 创建Axios实例，配置基础参数
 const service = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 5000,
+  baseURL,
+  timeout,
   headers: {
-    'Content-Type': 'application/json;charset=utf-8',
-    // Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+    'Content-Type': 'application/json;charset=utf-8'
   },
 })
 
-// 2. 请求拦截器
+
+// 3. 请求拦截器
 service.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
@@ -27,7 +45,7 @@ service.interceptors.request.use(
   },
 )
 
-// 3. 响应拦截器
+// 4. 响应拦截器
 service.interceptors.response.use(
   (response) => {
     return response

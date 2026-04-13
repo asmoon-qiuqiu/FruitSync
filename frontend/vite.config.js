@@ -20,6 +20,14 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()],
     }),
   ],
+  base: './',
+  build: {
+    // 打包输出目录
+    outDir: 'dist',
+    // 清空旧打包文件
+    emptyOutDir: true,
+  },
+  
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     )
 
     # ==================== 应用配置 ====================
-    APP_TITLE: str = Field(default="水果商城API", description="应用标题")
+    APP_TITLE: str = Field(default="水果API", description="应用标题")
     APP_VERSION: str = Field(default="1.0.0", description="应用版本")
     DEBUG: bool = Field(default=True, description="调试模式")
 
