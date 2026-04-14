@@ -22,3 +22,7 @@ frontend/.env.local
 .vscode/
 
 
+backend/Dockerfile
+frontend/Dockerfile
+frontend/nginx.conf
+docker-compose.yml

@@ -58,7 +58,7 @@ class EmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>水果商城</h1>
+                    <h1>Ciallo～(∠・ω< )⌒☆</h1>
                     <p>密码重置验证</p>
                 </div>
                 <div class="content">
@@ -79,7 +79,7 @@ class EmailService:
                     </p>
                 </div>
                 <div class="footer">
-                    <p>© 2025 水果商城 | 用心服务每一位顾客</p>
+                    <p>© 2025 asmoon | 用心服务每一位顾客</p>
                 </div>
             </div>
         </body>
@@ -138,7 +138,7 @@ class EmailService:
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>水果商城</h1>
+                        <h1>Ciallo～(∠・ω< )⌒☆</h1>
                         <p>密码修改通知</p>
                     </div>
                     <div class="content">
@@ -153,7 +153,7 @@ class EmailService:
                         </p>
                     </div>
                     <div class="footer">
-                        <p>© 2025 水果商城 | 用心服务每一位顾客</p>
+                        <p>© 2025 asmoon | 用心服务每一位顾客</p>
                     </div>
                 </div>
             </body>

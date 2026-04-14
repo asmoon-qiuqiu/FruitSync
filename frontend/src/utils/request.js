@@ -6,7 +6,7 @@ import axios from 'axios'
 const envConfig = {
   // 开发环境：测试接口 + 更长的超时（方便调试）
   development: {
-    baseURL: import.meta.env.VITE_API_BASE_URL,
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
     timeout: 10000 // 开发环境超时设长一点
   },
   // 生产环境：正式接口 + 合理超时
@@ -67,7 +67,7 @@ service.interceptors.response.use(
           const detail = data.detail || ''
 
           // 优先判断：如果是登录接口，肯定是用户名密码错误
-          if (requestUrl.includes('/api/login')) {
+          if (requestUrl === '/login' || requestUrl === '/api/login') {
             errorMsg = detail || '用户名或密码错误'
           }
           // 再判断：如果错误信息明确提到用户名密码

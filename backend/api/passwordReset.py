@@ -5,10 +5,9 @@
 依赖：FastAPI（路由框架）、SQLModel（数据库操作）、JWT（令牌生成）
 """
 
-from ast import expr
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select, Session, update
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import random
 import logging

@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     PROD_DB_PORT: int = Field(default=3306, description="生产数据库端口")
     PROD_DB_USER: str = Field(default="", description="生产数据库用户名")
     PROD_DB_PASSWORD: str = Field(default="", description="生产数据库密码")
-    PROD_DB_NAME: str = Field(default="fruit_db_prod", description="生产数据库名称")
+    PROD_DB_NAME: str = Field(default="", description="生产数据库名称")
 
     # 数据库连接池配置
     DB_POOL_SIZE: int = Field(default=5, description="连接池大小")

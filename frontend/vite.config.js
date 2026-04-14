@@ -20,7 +20,7 @@ export default defineConfig({
       resolvers: [ElementPlusResolver()],
     }),
   ],
-  base: './',
+  base: '/',
   build: {
     // 打包输出目录
     outDir: 'dist',

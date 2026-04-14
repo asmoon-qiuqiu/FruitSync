@@ -341,7 +341,7 @@
     flex-wrap: wrap;
     align-items: flex-start; // 顶部对齐
     padding-left: 10px;
-    background: url(../../public/images/main.jpg) no-repeat center;
+    background: url(@public/images/main.jpg) no-repeat center;
     background-size: cover;
     background-attachment: fixed;
 

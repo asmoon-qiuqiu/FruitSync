@@ -11,7 +11,8 @@ import service from "@/utils/request";
 
 export const userLoginApi = (data) => {
     return service({
-        url: "/api/login",
+        url: "/login",
+        // url: "/api/login",
         method: "POST",
         data: data, //传递登录表单数据
     })
