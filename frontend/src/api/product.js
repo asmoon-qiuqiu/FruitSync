@@ -10,7 +10,7 @@ import service from "@/utils/request";
  */
 export const getProductListApi = (params) => { // 设置默认空对象
     return service({
-        url: "/api/products",
+        url: "/products",
         method: "GET",
         params, //传递查询参数
 

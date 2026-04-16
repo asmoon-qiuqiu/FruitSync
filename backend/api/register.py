@@ -12,7 +12,7 @@ import logging  # 日志记录
 # 配置日志
 logger = logging.getLogger(__name__)
 # 创建路由器
-router = APIRouter(prefix="/api", tags=["register"])
+router = APIRouter(tags=["register"])
 
 
 @router.post(

@@ -14,7 +14,7 @@ import logging  # 导入日志模块
 # 配置日志（可根据需要调整日志级别、格式和输出位置）
 logger = logging.getLogger(__name__)
 # 创建路由器
-router = APIRouter(prefix="/api", tags=["login"])
+router = APIRouter(tags=["login"])
 
 
 @router.post(

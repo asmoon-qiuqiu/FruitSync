@@ -8,7 +8,7 @@ import service from "@/utils/request"; // 导入封装后的Axios实例
 
 export const userRegisterApi = (data) => {
     return service({
-        url: "/api/register",
+        url: "register",
         method: "POST",
         data: data, // 传递注册表单数据
     })

@@ -11,6 +11,7 @@ from api.product import router as product
 from api.passwordReset import router as passwordReset
 from config import settings  # 配置系统
 import logging
+from fastapi import Request
 
 # 配置日志
 logging.basicConfig(
@@ -111,6 +112,19 @@ def health_check():
         "version": settings.APP_VERSION,
     }
 
+from fastapi import Request
+
+# 查看 Nginx 传递的信息
+@app.get("/api/debug/headers")
+async def debug_headers(request: Request):
+    """查看 Nginx 传递的所有头信息"""
+    return {
+        "客户端访问的域名": request.headers.get("host"),
+        "用户真实 IP (X-Real-IP)": request.headers.get("x-real-ip"),
+        "代理链 (X-Forwarded-For)": request.headers.get("x-forwarded-for"),
+        "用户使用的协议 (X-Forwarded-Proto)": request.headers.get("x-forwarded-proto"),
+        "直连 Nginx 的 IP": request.client.host,  # 这是 Nginx 容器的 IP
+    }
 
 # 启动命令
 if __name__ == "__main__":

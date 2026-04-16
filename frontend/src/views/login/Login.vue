@@ -120,7 +120,10 @@
       // 路由跳转
       router.push('/')
     } catch (error) {
-      ElMessage.error('注册失败:' + error.message)
+      console.error('注册错误详情:', error)
+      const err = error.response?.data
+      const msg = err?.detail?.message || err?.detail || error?.message || '注册失败'
+      ElMessage.error('注册失败：' + msg)
     } finally {
       isLoading.value = false
     }
@@ -167,7 +170,10 @@
       // 跳转到首页
       router.push('/')
     } catch (error) {
-      ElMessage.error('登录失败:' + (error.message || '请检查用户名和密码'))
+      console.error('登录错误详情:', error)
+      const err = error.response?.data
+      const msg = err?.detail?.message || err?.detail || error?.message || '登录失败'
+      ElMessage.error('登录失败：' + msg)
     } finally {
       isLoading.value = false
     }

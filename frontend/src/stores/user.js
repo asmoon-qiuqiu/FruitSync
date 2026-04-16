@@ -71,7 +71,7 @@ export const useUserStore = defineStore('user', () => {
     const token = localStorage.getItem('token')
 
     // 只有同时存在用户信息和token才认为是登录状态
-    if (userStr && token) {
+    if (userStr && token && !checkTokenExpired()) {
       try {
         const user = JSON.parse(userStr)
         isLoggedIn.value = user.isLoggedIn

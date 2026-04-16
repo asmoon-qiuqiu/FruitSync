@@ -27,7 +27,7 @@ from config import settings
 import jwt
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/password", tags=["password-reset"])
+router = APIRouter(prefix="/password", tags=["password-reset"])
 
 
 def generate_verification_code() -> str:

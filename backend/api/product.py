@@ -17,7 +17,7 @@ from schemas.products.product import (
 from database import get_session
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api", tags=["products"])
+router = APIRouter(tags=["products"])
 
 
 @router.get(

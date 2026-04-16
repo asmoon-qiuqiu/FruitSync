@@ -1,9 +1,9 @@
-import { createApp, onMounted } from 'vue'
+import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import TlbsMap from 'tlbs-map-vue'
-
+import { useUserStore } from './stores/user'
 
 // 导入bootstrap样式
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -20,8 +20,10 @@ app.use(createPinia())
 app.use(TlbsMap)
 app.use(router)
 
-app.mount('#app')
-
+const userStore = useUserStore()
+userStore.initUser()
 // 初始化Token检查逻辑
 import { initTokenCheck } from "@/utils/checkToken"
 initTokenCheck()
+
+app.mount('#app')

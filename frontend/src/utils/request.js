@@ -1,4 +1,3 @@
-// src/utils/request.js
 import router from '@/router'
 import axios from 'axios'
 
@@ -7,13 +6,13 @@ const envConfig = {
   // 开发环境：测试接口 + 更长的超时（方便调试）
   development: {
     baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
-    timeout: 10000 // 开发环境超时设长一点
+    timeout: 10000, // 开发环境超时设长一点
   },
   // 生产环境：正式接口 + 合理超时
   production: {
     baseURL: import.meta.env.VITE_API_BASE_URL,
-    timeout: 5000 // 生产环境超时更严格
-  }
+    timeout: 5000, // 生产环境超时更严格
+  },
 }
 
 // 自动识别当前环境（打包后会自动变成production）
@@ -25,10 +24,9 @@ const service = axios.create({
   baseURL,
   timeout,
   headers: {
-    'Content-Type': 'application/json;charset=utf-8'
+    'Content-Type': 'application/json;charset=utf-8',
   },
 })
-
 
 // 3. 请求拦截器
 service.interceptors.request.use(
@@ -60,7 +58,12 @@ service.interceptors.response.use(
 
       switch (status) {
         case 400:
-          errorMsg = data.detail || '参数错误'
+          // 处理对象类型的 detail
+          if (typeof data.detail === 'object' && data.detail?.message) {
+            errorMsg = data.detail.message
+          } else {
+            errorMsg = data.detail || '参数错误'
+          }
           break
 
         case 401:

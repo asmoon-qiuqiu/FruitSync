@@ -3,9 +3,12 @@
  * @param {Object} data 请求参数（包含email）
  * @returns {Promise} 请求Promise对象
  */
+
+import service from "@/utils/request"
+
 export const sendCodeApi = (data) => {
   return service({
-    url: '/api/password/send-code',
+    url: '/password/send-code',
     method: 'POST',
     data: data,
   })
@@ -18,7 +21,7 @@ export const sendCodeApi = (data) => {
  */
 export const verifyCodeApi = (data) => {
   return service({
-    url: '/api/password/verify-code',
+    url: '/password/verify-code',
     method: 'POST',
     data: data,
   })
@@ -31,7 +34,7 @@ export const verifyCodeApi = (data) => {
  */
 export const resetPasswordApi = (data) => {
   return service({
-    url: '/api/password/reset',
+    url: '/password/reset',
     method: 'POST',
     data: data,
   })
