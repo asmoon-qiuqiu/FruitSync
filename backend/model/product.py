@@ -32,13 +32,13 @@ class Product(SQLModel, table=True):
     name: str = Field(max_length=50, index=True)
     # 商品描述：最大长度100，简要说明商品卖点和特性，支撑商品列表/详情页展示场景；
     # 长度限制平衡信息完整性与存储效率，避免冗余大文本数据
-    description: str = Field(max_length=100)
+    description: str | None = Field(default=None, max_length=100)
     # 商品价格：ge=0（价格非负）、le=999.99（价格上限），存储商品售卖单价（单位：元/斤）；
     # 数值约束保障价格数据合法性，防止负价、超高价等异常数据入库，适配零售场景价格范围
     price: float = Field(ge=0, le=999.99)
     # 商品图片URL：最大长度500，存储商品展示图片的访问链接（支持CDN/OSS等存储方式的长链接）；
     # 长度适配各类云存储URL格式，保障图片链接完整存储
-    image_url: str = Field(max_length=500)
+    image_url: str | None = Field(default=None, max_length=500)
     # 商品分类：默认值为"水果"，最大长度50，标识商品所属类别（如水果/蔬菜/零食）；
     # 索引设计支撑分类筛选、分类统计等业务场景，默认值降低新增商品的传参成本
     category: str = Field(default="水果", max_length=50, index=True)

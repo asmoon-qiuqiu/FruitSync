@@ -102,7 +102,7 @@
         category: currentCategory.value || undefined, // 分类为空时不传该参数
         search: searchState.value.keyword.trim() || undefined, // 传递搜索参数-搜索关键词为空时不传该参数
       })
-      console.log('完整响应对象:', response)
+      // console.log('完整响应对象:', response)
       // 解构接口返回的分页数据
       productList.value = response.data.products || []
       pagination.value.total = response.data.total || 0
@@ -150,11 +150,21 @@
   }
 
   // —— 工具方法 ——
-  // 图片加载失败的处理函数（加载失败时显示兜底图）
+  // // 图片加载失败的处理函数（加载失败时显示兜底图）
+  // const handleImageError = (e) => {
+  //   // 图片加载失败时显示兜底图
+  //   e.target.src = `${BASE_API_URL}/images/default.jpg`
+  //   // 也可以隐藏图片：e.target.style.display = 'none'
+  // }
+  // 图片加载失败处理
   const handleImageError = (e) => {
-    // 图片加载失败时显示兜底图
+    // 防止无限循环
+    if (e.target.src.includes('/images/default.jpg')) {
+      console.warn('默认图片加载失败')
+      e.target.style.display = 'none'
+      return
+    }
     e.target.src = `${BASE_API_URL}/images/default.jpg`
-    // 也可以隐藏图片：e.target.style.display = 'none'
   }
 
   // ===================== 7. 监听逻辑（按目标分组） =====================

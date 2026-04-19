@@ -25,7 +25,7 @@
       if (response.status === 200) {
         allSuggestions.value = Array.isArray(response.data.products) ? response.data.products : []
       }
-      console.log('搜索数据', allSuggestions.value)
+      // console.log('搜索数据', allSuggestions.value)
     } catch (error) {
       ElMessage.error('搜索失败')
       allSuggestions.value = []
@@ -81,7 +81,7 @@
     }, 200)
   }
 
-  // 退出登录方法 ✨
+  // 退出登录方法
   const handleLogout = () => {
     userStore.logout() // 调用Pinia的logout方法清除状态
     ElMessage.success('退出成功')
@@ -160,7 +160,7 @@
           >
             联系方式
           </router-link>
-          <!-- 动态显示用户名/登录按钮 ✨ -->
+          <!-- 动态显示用户名/登录按钮 -->
           <div
             v-if="userStore.isLoggedIn"
             class="user-info link"
