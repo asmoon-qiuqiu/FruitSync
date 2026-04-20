@@ -1,5 +1,5 @@
 # main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager  # 用于管理应用生命周期
 from sqlmodel import SQLModel
@@ -11,7 +11,8 @@ from api.product import router as product
 from api.passwordReset import router as passwordReset
 from config import settings  # 配置系统
 import logging
-from fastapi import Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 # 配置日志
 logging.basicConfig(
@@ -86,6 +87,23 @@ app.include_router(login)
 app.include_router(product)
 app.include_router(passwordReset)
 
+
+# 全局捕获参数校验错误，统一返回格式
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # 取出第一个错误
+    error = exc.errors()[0]
+    loc = error.get("loc", [])
+    field = loc[-1]  # 获取字段名 page / page_size / username 等
+    msg = error.get("msg", "参数格式错误")
+
+    # 返回你要的格式！
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={"detail": {"field": field, "message": msg}},
+    )
+
+
 # 根路径
 @app.get("/")
 def root():
@@ -111,6 +129,7 @@ def health_check():
         "environment": settings.ENVIRONMENT.value,
         "version": settings.APP_VERSION,
     }
+
 
 # 启动命令
 if __name__ == "__main__":

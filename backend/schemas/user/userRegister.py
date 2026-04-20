@@ -1,5 +1,6 @@
 import re
 from pydantic import BaseModel, EmailStr, field_validator
+from fastapi import HTTPException, status
 
 
 class UserRegister(BaseModel):
@@ -27,9 +28,21 @@ class UserRegister(BaseModel):
         # 去除首尾空格(避免用户输入空格导致校验失败)
         v_stripped = v.strip()
         if len(v_stripped) < 3 or len(v_stripped) > 10:
-            raise ValueError("用户名长度必须在3-10个字符之间")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "field": "username",
+                    "message": "用户名长度必须在3-10个字符之间",
+                },
+            )
         if not re.match(r"^[a-zA-Z0-9_\u4e00-\u9fa5]+$", v_stripped):
-            raise ValueError("用户名只能包含字母、数字、下划线和中文")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "field": "username",
+                    "message": "用户名只能包含字母、数字、下划线和中文",
+                },
+            )
         return v_stripped  # 返回去空格后的用户名，避免存储空格
 
     @field_validator("password")
@@ -45,5 +58,8 @@ class UserRegister(BaseModel):
         # values 是已校验通过的字段字典(注意字段校验顺序：password先于repassword)
         password = values.data.get("password")  # Pydantic v2 用 values.data 获取字段值
         if v != password:
-            raise ValueError("两次输入的密码不一致")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"field": "repassword", "message": "两次输入的密码不一致"},
+            )
         return v
